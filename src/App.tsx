@@ -223,7 +223,7 @@ function Landing({ navigate }: { navigate: (path: string) => void }) {
       <section className="features" id="features"><div><span className="eyebrow">THE SKILL INTELLIGENCE LAYER</span><h2>Everything you need to become industry ready.</h2><p>Assessment, improvement and opportunity matching in one connected platform.</p><Button variant="dark" onClick={() => navigate("/login")}>Explore all features <Icon name="arrow" /></Button></div><div className="feature-list">{features.map((f, i) => <div key={f}><span><Icon name={["file", "check", "chart", "spark", "briefcase", "building"][i] as IconName} /></span><strong>{f}</strong><small>{["Benchmark technical ability", "Proof beyond self-declared skills", "A clear, explainable career metric", "Know exactly what to improve", "See why every role fits", "Turn data into better training"][i]}</small></div>)}</div></section>
       <section className="cta"><span className="eyebrow">YOUR NEXT STEP STARTS HERE</span><h2>Start building your future with SkillImprove.</h2><p>Prove what you know. Improve what matters. Connect with the right opportunities.</p><Button onClick={() => navigate("/login")}>Get started free <Icon name="arrow" /></Button></section>
     </main>
-    <footer><Logo dark /><p>Students prove skills. Industry finds evidence. Colleges build readiness.</p><span>© 2025 SkillImprove</span></footer>
+    <footer><Logo dark /><p>Students prove skills. Industry finds evidence. Colleges build readiness.</p><span>© 2026 SkillImprove</span></footer>
   </div>;
 }
 
