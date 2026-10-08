@@ -59,9 +59,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
   const [isDragging, setIsDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showTextModal, setShowTextModal] = useState(false);
-  const [result, setResult] = useState<ATSAnalysisResult>(() =>
-    analyzeResumeATS(sampleAlexResume, "frontend-developer", "Junior")
-  );
+  const [result, setResult] = useState<ATSAnalysisResult | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "matched" | "missing" | "keywords" | "recommendations">("overview");
 
   const filteredRoles = JOB_ROLES_KNOWLEDGE_BASE.filter(
@@ -76,12 +74,16 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
 
   const handleRoleSelect = (roleId: string) => {
     setSelectedRoleId(roleId);
-    setResult(analyzeResumeATS(resumeText, roleId, selectedSeniority));
+    if (result) {
+      setResult(analyzeResumeATS(resumeText, roleId, selectedSeniority));
+    }
   };
 
   const handleSeniorityChange = (seniority: SeniorityLevel) => {
     setSelectedSeniority(seniority);
-    setResult(analyzeResumeATS(resumeText, selectedRoleId, seniority));
+    if (result) {
+      setResult(analyzeResumeATS(resumeText, selectedRoleId, seniority));
+    }
   };
 
   const processFile = (file: File) => {
@@ -92,7 +94,6 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
       reader.onload = () => {
         const text = String(reader.result || "");
         setResumeText(text);
-        triggerAnalysis(text);
       };
       reader.readAsText(file);
     } else {
@@ -110,7 +111,6 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
         const cleaned = extracted.replace(/\s+/g, " ");
         const finalContent = cleaned.length > 100 ? extracted : sampleAlexResume;
         setResumeText(finalContent);
-        triggerAnalysis(finalContent);
       };
       reader.readAsArrayBuffer(file);
     }
@@ -137,8 +137,16 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
     if (file) processFile(file);
   };
 
+  const wordCount = (resumeText.trim().match(/\S+/g) || []).length;
+
   const scoreColor =
-    result.overallScore >= 80 ? "#10b981" : result.overallScore >= 65 ? "#0284c7" : result.overallScore >= 50 ? "#f59e0b" : "#ef4444";
+    result && result.overallScore >= 80
+      ? "#10b981"
+      : result && result.overallScore >= 65
+      ? "#0284c7"
+      : result && result.overallScore >= 50
+      ? "#f59e0b"
+      : "#ef4444";
 
   return (
     <div className="ats-analyzer-container" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -364,7 +372,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
             >
               <span style={{ color: "#334155", fontWeight: 600 }}>📄 {uploadedFileName}</span>
               <span style={{ color: "#64748b", fontSize: "11px" }}>
-                {result.resumeHighlights.wordCount} words detected
+                {result ? result.resumeHighlights.wordCount : wordCount} words detected
               </span>
             </div>
           </div>
@@ -388,9 +396,10 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
         </div>
       </div>
 
-      {/* Main Results Dashboard */}
-      <div className="card" style={{ padding: "24px" }}>
-        {/* Results Header */}
+      {/* Main Results Dashboard - Shown Only After Clicking Run Button */}
+      {result ? (
+        <div className="card" style={{ padding: "24px" }}>
+          {/* Results Header */}
         <div
           style={{
             display: "flex",
@@ -884,6 +893,51 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
           </div>
         )}
       </div>
+    ) : (
+      <div
+        className="card"
+          style={{
+            padding: "48px 24px",
+            textAlign: "center",
+            background: "linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)",
+            border: "1.5px dashed #cbd5e1",
+            borderRadius: "16px",
+          }}
+        >
+          <div
+            style={{
+              width: "68px",
+              height: "68px",
+              margin: "0 auto 16px",
+              borderRadius: "50%",
+              background: "#eff6ff",
+              color: "#2563eb",
+              display: "grid",
+              placeItems: "center",
+              fontSize: "30px",
+            }}
+          >
+            🎯
+          </div>
+          <h3 style={{ margin: "0 0 8px", fontSize: "19px", fontWeight: 800, color: "#1e293b" }}>
+            Ready for ATS Match & Scoring
+          </h3>
+          <p style={{ margin: "0 auto 20px", color: "#64748b", fontSize: "13px", maxWidth: "560px", lineHeight: 1.6 }}>
+            Select your target software role and seniority level above, inspect or upload your resume, and click the{" "}
+            <strong>&quot;Run ATS Match against {selectedRole.name}&quot;</strong> button to calculate your role-specific ATS match score,
+            audit evidence levels, and reveal missing core skills.
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => triggerAnalysis()}
+            disabled={isAnalyzing}
+            style={{ padding: "12px 28px", fontSize: "14px", fontWeight: 700 }}
+          >
+            {isAnalyzing ? "Scanning Resume..." : `Run ATS Match against ${selectedRole.name}`}
+          </button>
+        </div>
+      )}
 
       {/* Direct Resume Text Editor Modal */}
       {showTextModal && (
