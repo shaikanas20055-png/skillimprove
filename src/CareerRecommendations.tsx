@@ -198,6 +198,7 @@ export default function CareerRecommendations({ initialRoleQuery = "Data Analyst
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
+              <div className="search-vertical-divider" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Search for a job role, e.g. Data Analyst, Frontend Developer, AI Engineer..."
@@ -219,10 +220,17 @@ export default function CareerRecommendations({ initialRoleQuery = "Data Analyst
                   ×
                 </button>
               )}
+              <button
+                type="submit"
+                className="career-search-pill-submit-btn"
+                aria-label="Search"
+                title="Search role"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
             </div>
-            <button type="submit" className="btn btn-primary career-search-submit-btn">
-              Search
-            </button>
 
             {/* Autocomplete Dropdown */}
             {showSuggestions && autocompleteSuggestions.length > 0 && (

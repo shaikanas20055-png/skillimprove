@@ -474,81 +474,192 @@ footer { height: 100px; padding: 0 max(24px, calc((100vw - 1180px)/2)); display:
   line-height: 1.6;
 }
 
-.career-search-bar-wrap {
+/* Career & Learning Recommendations Minimal Pill Search Bar */
+.career-recommendations-page .career-search-bar-wrap {
   position: relative;
-  max-width: 720px;
-  margin: 0 auto 16px;
+  max-width: 680px;
+  margin: 0 auto 18px;
   display: flex;
-  gap: 10px;
 }
 
-.career-search-input-box {
+/* Animated Rainbow Glowing Shadow Aura */
+.career-recommendations-page .career-search-bar-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    #ff0055,
+    #ff5500,
+    #ffbb00,
+    #10b981,
+    #06b6d4,
+    #3b82f6,
+    #8b5cf6,
+    #ec4899,
+    #ff0055
+  );
+  background-size: 300% 100%;
+  opacity: 0;
+  filter: blur(14px);
+  transition: opacity 0.35s ease, filter 0.35s ease;
+  z-index: 0;
+  pointer-events: none;
+  animation: rainbowShadowGlow 4s linear infinite;
+}
+
+@keyframes rainbowShadowGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.career-recommendations-page .career-search-bar-wrap:hover::before,
+.career-recommendations-page .career-search-bar-wrap:focus-within::before {
+  opacity: 0.95;
+  filter: blur(18px);
+}
+
+/* Minimalist Pill Capsule (matching uploaded image) */
+.career-recommendations-page .career-search-input-box {
   position: relative;
-  flex: 1;
+  z-index: 1;
+  width: 100%;
   display: flex;
   align-items: center;
-  background: white;
-  border: 2px solid #cbd5e1;
-  border-radius: 14px;
-  padding: 0 16px;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 6px 14px 6px 24px;
+  min-height: 58px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.03);
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.25s ease,
+              background 0.25s ease;
 }
 
-.career-search-input-box:focus-within {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 4px rgba(49, 89, 220, 0.15);
+.career-recommendations-page .career-search-bar-wrap:hover .career-search-input-box,
+.career-recommendations-page .career-search-bar-wrap:focus-within .career-search-input-box {
+  background: #ffffff;
+  border-color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow:
+    0 12px 32px rgba(15, 23, 42, 0.08),
+    0 0 20px rgba(255, 0, 85, 0.45),
+    0 0 35px rgba(255, 145, 0, 0.4),
+    0 0 50px rgba(16, 185, 129, 0.35),
+    0 0 65px rgba(6, 182, 212, 0.4),
+    0 0 80px rgba(139, 92, 246, 0.45);
 }
 
-.career-search-input-box .search-icon {
-  color: #94a3b8;
-  margin-right: 12px;
+.career-recommendations-page .career-search-input-box .search-icon {
+  color: #64748b;
   flex: none;
+  width: 22px;
+  height: 22px;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.career-search-input-box input {
-  width: 100%;
+.career-recommendations-page .career-search-bar-wrap:hover .search-icon,
+.career-recommendations-page .career-search-bar-wrap:focus-within .search-icon {
+  color: #4f46e5;
+  transform: scale(1.08);
+}
+
+/* Thin vertical separator line matching screenshot */
+.career-recommendations-page .search-vertical-divider {
+  width: 1.5px;
+  height: 24px;
+  background: #cbd5e1;
+  margin: 0 16px 0 14px;
+  border-radius: 1px;
+  flex: none;
+  transition: background-color 0.2s ease;
+}
+
+.career-recommendations-page .career-search-bar-wrap:hover .search-vertical-divider,
+.career-recommendations-page .career-search-bar-wrap:focus-within .search-vertical-divider {
+  background: #94a3b8;
+}
+
+.career-recommendations-page .career-search-input-box input {
+  flex: 1;
+  min-width: 0;
   border: 0;
   outline: 0;
   font-size: 15px;
   color: var(--ink);
   background: transparent;
-  padding: 14px 0;
+  padding: 12px 0;
+  font-family: inherit;
 }
 
-.career-search-input-box input::placeholder {
+.career-recommendations-page .career-search-input-box input::placeholder {
   color: #94a3b8;
+  font-weight: 400;
 }
 
-.clear-input-btn {
+.career-recommendations-page .clear-input-btn {
   background: #f1f5f9;
   border: 0;
   border-radius: 50%;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   color: #64748b;
   font-size: 15px;
   margin-left: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: none;
 }
 
-.career-search-submit-btn {
-  padding: 0 28px;
-  font-size: 15px;
-  height: 52px;
+.career-recommendations-page .clear-input-btn:hover {
+  background: #e2e8f0;
+  color: var(--ink);
+}
+
+.career-recommendations-page .career-search-pill-submit-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 0;
+  background: #f1f5f9;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+  flex: none;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.career-recommendations-page .career-search-pill-submit-btn:hover {
+  background: linear-gradient(135deg, #3159dc, #6d5dfc);
+  color: #ffffff;
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(49, 89, 220, 0.4);
 }
 
 /* Autocomplete Dropdown */
-.career-autocomplete-dropdown {
+.career-recommendations-page .career-autocomplete-dropdown {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   left: 0;
-  right: 120px;
+  right: 0;
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.05);
   z-index: 50;
   overflow: hidden;
   text-align: left;
@@ -1965,12 +2076,6 @@ footer { height: 100px; padding: 0 max(24px, calc((100vw - 1180px)/2)); display:
   }
   .career-search-hero {
     padding: 28px 18px;
-  }
-  .career-search-bar-wrap {
-    flex-direction: column;
-  }
-  .career-search-submit-btn {
-    width: 100%;
   }
   .career-autocomplete-dropdown {
     right: 0;
