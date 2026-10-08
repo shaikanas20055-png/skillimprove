@@ -1,4 +1,16 @@
 import { ChangeEvent, DragEvent, FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 import logoImg from "./assets/logo.png";
 import ProfileWorkspace from "./ProfileWorkspace";
 import Assessments from "./Assessments";
@@ -1999,6 +2011,91 @@ export function exportSkillDemandReport() {
   URL.revokeObjectURL(url);
 }
 
+const skillDemandTrendData = [
+  { month: "Jan", "AI / ML": 64, "Cloud DevOps": 62, "Full Stack": 70, "Market Index": 65 },
+  { month: "Feb", "AI / ML": 70, "Cloud DevOps": 67, "Full Stack": 74, "Market Index": 70 },
+  { month: "Mar", "AI / ML": 74, "Cloud DevOps": 71, "Full Stack": 77, "Market Index": 74 },
+  { month: "Apr", "AI / ML": 80, "Cloud DevOps": 75, "Full Stack": 81, "Market Index": 78 },
+  { month: "May", "AI / ML": 84, "Cloud DevOps": 79, "Full Stack": 84, "Market Index": 82 },
+  { month: "Jun", "AI / ML": 88, "Cloud DevOps": 82, "Full Stack": 86, "Market Index": 85 },
+];
+
+function CustomDemandBarTooltip({ active, payload, label }: { active?: boolean; payload?: any[]; label?: string }) {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#f8fafc",
+          padding: "10px 14px",
+          borderRadius: "10px",
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.25)",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          fontSize: "12px",
+          minWidth: "165px",
+        }}
+      >
+        <strong style={{ display: "block", marginBottom: "6px", color: "#ffffff", fontSize: "13px" }}>
+          {item.fullName || label}
+        </strong>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", color: "#a5b4fc", marginBottom: "3px" }}>
+          <span>Employer Demand:</span>
+          <b>{item.demand}%</b>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", color: "#86efac", marginBottom: "3px" }}>
+          <span>Campus Supply:</span>
+          <b>{item.supply}%</b>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", color: "#fcd34d", borderTop: "1px solid rgba(255, 255, 255, 0.1)", paddingTop: "4px", marginTop: "4px" }}>
+          <span>Talent Deficit:</span>
+          <b>{item.gap}%</b>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomTrendTooltip({ active, payload, label }: { active?: boolean; payload?: any[]; label?: string }) {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#f8fafc",
+          padding: "10px 14px",
+          borderRadius: "10px",
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.25)",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          fontSize: "12px",
+          minWidth: "165px",
+        }}
+      >
+        <strong style={{ display: "block", marginBottom: "6px", color: "#ffffff", fontSize: "13px" }}>
+          {label} Hiring Trend
+        </strong>
+        {payload.map((entry: any) => (
+          <div
+            key={entry.dataKey}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "12px",
+              color: entry.color,
+              marginBottom: "3px",
+            }}
+          >
+            <span>{entry.name}:</span>
+            <b>{entry.value} pts</b>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
+
 function SkillDemandAnalytics({
   role = "industry",
   navigate,
@@ -2025,6 +2122,27 @@ function SkillDemandAnalytics({
   });
 
   const domains = ["All", "Web & Full Stack", "AI & Data", "Cloud & DevOps", "Security"];
+
+  const demandBarData = (filtered.length >= 4 ? filtered.slice(0, 6) : skillDemandData.slice(0, 6)).map((item) => {
+    let shortName = item.name;
+    if (item.name.includes("AI &")) shortName = "AI / ML";
+    else if (item.name.includes("Cloud")) shortName = "Cloud";
+    else if (item.name.includes("React")) shortName = "React";
+    else if (item.name.includes("Python")) shortName = "Python";
+    else if (item.name.includes("Docker")) shortName = "Docker";
+    else if (item.name.includes("Data Analytics")) shortName = "SQL / BI";
+    else if (item.name.includes("Cyber")) shortName = "Cyber";
+    else shortName = item.name.split(" ")[0];
+
+    return {
+      skill: shortName,
+      fullName: item.name,
+      demand: item.demand,
+      supply: item.supply,
+      gap: item.gap,
+      growth: item.growth,
+    };
+  });
 
   const roleMeta = {
     student: {
@@ -2121,34 +2239,124 @@ function SkillDemandAnalytics({
         <KpiCard label="Average market gap" value="19.4%" note="Industry demand vs campus supply" icon="briefcase" tone="green" />
       </div>
 
-      {/* Analytics Grid: Most in-demand chart + 6-month growth SVG */}
+      {/* Analytics Grid: Most in-demand BarChart + 6-month growth Area/LineChart */}
       <div className="analytics-grid" style={{ marginBottom: "20px" }}>
-        <Card>
+        <Card style={{ padding: "18px 20px" }}>
           <SectionTitle
             title="Most in-demand technical skills"
-            subtitle="Based on verified active requisitions across 150+ hiring partners"
+            subtitle="Employer demand vs student supply benchmark (index 0-100)"
+            action={<Badge tone="purple">{selectedDomain === "All" ? "Top Skills" : selectedDomain}</Badge>}
           />
-          <MiniChart values={[88, 86, 82, 79, 74, 66]} labels={["AI/ML", "React", "Cloud", "Python", "Docker", "Cyber"]} color="purple" />
+          <div style={{ width: "100%", height: 260, marginTop: "8px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={demandBarData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="barGradientDemand" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6d5dfc" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#3159dc" stopOpacity={0.85} />
+                  </linearGradient>
+                  <linearGradient id="barGradientSupply" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="#059669" stopOpacity={0.7} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <XAxis
+                  dataKey="skill"
+                  tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
+                  axisLine={{ stroke: "#cbd5e1" }}
+                  tickLine={false}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<CustomDemandBarTooltip />} />
+                <Legend
+                  wrapperStyle={{ fontSize: "11px", paddingTop: "6px" }}
+                  iconType="circle"
+                />
+                <Bar
+                  dataKey="demand"
+                  name="Employer Demand (%)"
+                  fill="url(#barGradientDemand)"
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={28}
+                />
+                <Bar
+                  dataKey="supply"
+                  name="Campus Supply (%)"
+                  fill="url(#barGradientSupply)"
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={28}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </Card>
 
-        <Card>
+        <Card style={{ padding: "18px 20px" }}>
           <SectionTitle
             title="Skill demand growth trends"
             subtitle="Hiring volume demand index · Last 6 months"
             action={<Badge tone="green">+38% AI / ML Surge</Badge>}
           />
-          <div className="line-chart">
-            <svg viewBox="0 0 500 180" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="area-demand" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor="#6d5dfc" stopOpacity=".35" />
-                  <stop offset="1" stopColor="#6d5dfc" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d="M0 145 C70 125 85 130 145 100 S230 110 285 65 S390 85 500 20 L500 180 L0 180Z" fill="url(#area-demand)" />
-              <path d="M0 145 C70 125 85 130 145 100 S230 110 285 65 S390 85 500 20" fill="none" stroke="#6d5dfc" strokeWidth="4" />
-            </svg>
-            <div>{["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((x) => <span key={x}>{x}</span>)}</div>
+          <div style={{ width: "100%", height: 260, marginTop: "8px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={skillDemandTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="areaGradientAi" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6d5dfc" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#6d5dfc" stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="areaGradientMarket" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
+                  axisLine={{ stroke: "#cbd5e1" }}
+                  tickLine={false}
+                />
+                <YAxis
+                  domain={[50, 100]}
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<CustomTrendTooltip />} />
+                <Legend
+                  wrapperStyle={{ fontSize: "11px", paddingTop: "6px" }}
+                  iconType="circle"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="AI / ML"
+                  stroke="#6d5dfc"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#areaGradientAi)"
+                  dot={{ r: 3, fill: "#6d5dfc", strokeWidth: 1, stroke: "#fff" }}
+                  activeDot={{ r: 6, fill: "#6d5dfc", stroke: "#fff", strokeWidth: 2 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="Market Index"
+                  stroke="#06b6d4"
+                  strokeWidth={2.5}
+                  strokeDasharray="4 4"
+                  fillOpacity={1}
+                  fill="url(#areaGradientMarket)"
+                  dot={{ r: 3, fill: "#06b6d4", strokeWidth: 1, stroke: "#fff" }}
+                  activeDot={{ r: 5, fill: "#06b6d4", stroke: "#fff", strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </Card>
       </div>
