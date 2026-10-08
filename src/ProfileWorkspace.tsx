@@ -510,12 +510,11 @@ export default function ProfileWorkspace({
                     </div>
                   </div>
 
-                  {/* EDIT & DELETE ACTION BUTTONS */}
+                  {/* EDIT ACTION BUTTON */}
                   <div
                     style={{
                       display: "flex",
                       justifyContent: "flex-end",
-                      gap: "8px",
                       paddingTop: "12px",
                       borderTop: "1px solid #f1f5f9",
                       marginTop: "10px",
@@ -525,24 +524,9 @@ export default function ProfileWorkspace({
                       type="button"
                       className="btn btn-secondary"
                       onClick={() => setEditingProject(proj)}
-                      style={{ padding: "6px 12px", fontSize: "12px", display: "flex", alignItems: "center", gap: "5px" }}
+                      style={{ padding: "6px 14px", fontSize: "12px", display: "flex", alignItems: "center", gap: "5px" }}
                     >
                       ✏️ Edit Project
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => handleDeleteProject(proj.id, proj.title)}
-                      style={{
-                        padding: "6px 12px",
-                        fontSize: "12px",
-                        color: "#ef4444",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "5px",
-                      }}
-                    >
-                      🗑️ Delete
                     </button>
                   </div>
                 </div>
@@ -705,12 +689,11 @@ export default function ProfileWorkspace({
                         </div>
                       )}
 
-                      {/* EDIT & DELETE BUTTONS FOR CERTIFICATE */}
+                      {/* EDIT ACTION BUTTON FOR CERTIFICATE */}
                       <div
                         style={{
                           display: "flex",
                           justifyContent: "flex-end",
-                          gap: "8px",
                           borderTop: "1px solid #f1f5f9",
                           paddingTop: "10px",
                         }}
@@ -719,17 +702,9 @@ export default function ProfileWorkspace({
                           type="button"
                           className="btn btn-secondary"
                           onClick={() => setEditingCertificate(cert)}
-                          style={{ padding: "4px 10px", fontSize: "11px", display: "flex", alignItems: "center", gap: "4px" }}
+                          style={{ padding: "5px 12px", fontSize: "11px", display: "flex", alignItems: "center", gap: "4px" }}
                         >
-                          ✏️ Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-ghost"
-                          onClick={() => handleDeleteCertificate(cert.id, cert.title)}
-                          style={{ padding: "4px 10px", fontSize: "11px", color: "#ef4444", display: "flex", alignItems: "center", gap: "4px" }}
-                        >
-                          🗑️ Delete
+                          ✏️ Edit Certificate
                         </button>
                       </div>
                     </div>
@@ -930,13 +905,42 @@ export default function ProfileWorkspace({
                 />
               </label>
             </div>
-            <div className="modal-actions" style={{ marginTop: "16px" }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setEditingProject(null)}>
-                Cancel
+            <div
+              className="modal-actions"
+              style={{
+                marginTop: "16px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => {
+                  handleDeleteProject(editingProject.id, editingProject.title);
+                  setEditingProject(null);
+                }}
+                style={{
+                  color: "#ef4444",
+                  fontSize: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "6px 10px",
+                }}
+              >
+                🗑️ Delete Project
               </button>
-              <button type="submit" className="btn btn-primary">
-                Save Changes
-              </button>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setEditingProject(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save Changes
+                </button>
+              </div>
             </div>
           </form>
         </Modal>
@@ -972,13 +976,42 @@ export default function ProfileWorkspace({
                 <input name="picture" type="file" accept="image/*" />
               </label>
             </div>
-            <div className="modal-actions" style={{ marginTop: "16px" }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setEditingCertificate(null)}>
-                Cancel
+            <div
+              className="modal-actions"
+              style={{
+                marginTop: "16px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => {
+                  handleDeleteCertificate(editingCertificate.id, editingCertificate.title);
+                  setEditingCertificate(null);
+                }}
+                style={{
+                  color: "#ef4444",
+                  fontSize: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "6px 10px",
+                }}
+              >
+                🗑️ Delete Certificate
               </button>
-              <button type="submit" className="btn btn-primary">
-                Save Changes
-              </button>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setEditingCertificate(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save Changes
+                </button>
+              </div>
             </div>
           </form>
         </Modal>
