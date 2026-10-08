@@ -96,6 +96,7 @@ const navigation: Record<Role, { label: string; icon: IconName; path: string }[]
     { label: "Dashboard", icon: "grid", path: "dashboard" },
     { label: "My Profile", icon: "user", path: "profile" },
     { label: "Resume Analyzer (ATS)", icon: "spark", path: "resume-analyzer" },
+    { label: "Skill Demand", icon: "chart", path: "skill-demand" },
     { label: "Skill Assessment", icon: "file", path: "assessment" },
     { label: "Learning Recommendations", icon: "book", path: "recommendations" },
     { label: "Jobs & Internships", icon: "search", path: "jobs" },
@@ -116,6 +117,7 @@ const navigation: Record<Role, { label: string; icon: IconName; path: string }[]
     { label: "Students", icon: "users", path: "students" },
     { label: "Verify Projects", icon: "check", path: "verify-projects" },
     { label: "Student Skills", icon: "spark", path: "student-skills" },
+    { label: "Skill Demand", icon: "chart", path: "skill-demand" },
     { label: "Training Programs", icon: "book", path: "training" },
     { label: "Industry Connections", icon: "briefcase", path: "connections" },
     { label: "Placement Analytics", icon: "chart", path: "placements" },
@@ -831,6 +833,7 @@ const SkillEvidence = ({ name, level, score, projects, certificate = 1 }: { name
 function StudentPages({ page, navigate }: { page: string; navigate: (p: string) => void }) {
   if (page === "resume-analyzer") return <ResumeAnalyzerATS navigate={navigate} />;
   if (["profile", "skills", "projects", "certifications", "resume"].includes(page)) return <StudentProfile focus={page} navigate={navigate} />;
+  if (["skill-demand", "analytics"].includes(page)) return <SkillDemandAnalytics role="student" navigate={navigate} />;
   if (page === "assessment") return <Assessments navigate={navigate} />;
   if (["recommendations", "learning", "career", "gaps"].includes(page)) return <CareerRecommendations navigate={navigate} />;
   if (page === "jobs") return <Opportunities navigate={navigate} />;
@@ -1551,7 +1554,7 @@ function IndustryPages({ page, navigate }: { page: string; navigate: (p: string)
   } else if (page === "candidate") {
     content = <CandidateProfile onContactCandidate={handleContactCandidate} />;
   } else if (["analytics", "skill-demand"].includes(page)) {
-    content = <IndustryAnalytics />;
+    content = <SkillDemandAnalytics role="industry" navigate={navigate} />;
   } else if (page === "applications") {
     content = <Applications role="industry" onContactCandidate={handleContactCandidate} />;
   } else if (page === "opportunities") {
@@ -1831,8 +1834,541 @@ function CandidateProfile({ onContactCandidate }: { onContactCandidate?: (c: any
   }}>{shortlisted ? <><Icon name="check" /> Shortlisted</> : <>Shortlist candidate <Icon name="plus" /></>}</Button></div></div></div><div className="candidate-profile-grid"><div><Card className="match-card"><ScoreRing score={92} size="small" /><div><span className="eyebrow">MATCH FOR FRONTEND INTERN</span><h3>Excellent candidate match</h3><p>Alex strongly matches your role through verified React skills, relevant projects and a high assessment score.</p></div></Card><SectionTitle title="Verified skill evidence" subtitle="Capability backed by multiple sources" /><div className="evidence-list"><SkillEvidence name="React" level="Advanced" score={91} projects={3} /><SkillEvidence name="JavaScript" level="Advanced" score={88} projects={4} /><SkillEvidence name="Node.js" level="Intermediate" score={83} projects={2} /></div><SectionTitle title="Student portfolio projects" subtitle="Projects completed by candidate" /><div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>{candidateProjects.map(proj => <Card className="simple-project" key={proj.id}><div className={`icon-tile ${proj.status === "verified" ? "green" : "purple"}`}><Icon name={proj.status === "verified" ? "check" : "spark"} /></div><div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><h3 style={{ margin: 0 }}>{proj.title}</h3><Badge tone={proj.status === "verified" ? "green" : "orange"}>{proj.status === "verified" ? "College Verified" : "Student Submitted"}</Badge></div><p style={{ margin: "0.25rem 0", color: "#64748b", fontSize: "0.85rem" }}>{proj.detail}</p><div className="tag-row">{proj.tags.map(x => <Badge tone="gray" key={x}>{x}</Badge>)}</div>{proj.githubUrl && <small style={{ display: "block", marginTop: "0.25rem", color: "#0284c7" }}>Repository: {proj.githubUrl}</small>}{proj.fileName && <small style={{ display: "block", color: "#64748b" }}>Attachment: {proj.fileName}</small>}</div></Card>)}</div></div><div><Card className="readiness-side"><span className="eyebrow">INDUSTRY READINESS</span><ScoreRing score={82} /><Badge tone="green">Industry Ready</Badge>{[["Required skills", 86], ["Projects", 78], ["Assessments", 88], ["Skill evidence", 84], ["Professional skills", 82]].map(([x, y]) => <div className="mini-progress" key={x}><span>{x}<b>{y}%</b></span><Progress value={y as number} /></div>)}</Card><Card className="why-card"><span className="eyebrow">AI MATCH EXPLANATION</span><h3>Why this candidate matches</h3>{["Strong React and JavaScript skills", `${candidateProjects.length} completed projects with verified evidence`, "High assessment scores", "Relevant internship experience"].map(x => <p key={x}><Icon name="check" /> {x}</p>)}<p className="caution"><Icon name="chart" /> Limited production testing experience</p></Card><Card><SectionTitle title="Resume" /><div className="resume-download"><Icon name="file" /><div><strong>Alex_Johnson_Resume.pdf</strong><small>Updated 2 days ago · Verified</small></div><div style={{ display: "flex", gap: "6px" }}><Button variant="ghost" onClick={() => setResumeOpen(true)}>Preview</Button><Button variant="secondary" onClick={() => downloadStudentResume("Alex Johnson")}>Download</Button></div></div></Card></div></div>{resumeOpen && <ResumeViewerModal candidateName="Alex Johnson" resumeFileName="Alex_Johnson_Resume.pdf" score={88} close={() => setResumeOpen(false)} />}</>;
 }
 
-function IndustryAnalytics() {
-  return <><div className="welcome"><div><Badge tone="purple"><Icon name="spark" size={13} /> AI DEMAND INTELLIGENCE</Badge><h2>Skill demand analytics</h2><p>Understand market shifts and find where talent supply falls short.</p></div><Button variant="secondary">Export report</Button></div><div className="kpi-grid"><KpiCard label="Skills tracked" value="48" note="Across 12 roles" icon="spark" /><KpiCard label="Fastest growing" value="AI/ML" note="+38% in 6 months" icon="chart" tone="purple" /><KpiCard label="Largest talent gap" value="Cloud" note="21% supply deficit" icon="users" tone="orange" /></div><div className="analytics-grid"><Card><SectionTitle title="Most in-demand skills" subtitle="Based on active roles and application data" /><MiniChart values={[91, 84, 78, 69, 62, 55]} labels={["AI/ML", "React", "Python", "Cloud", "Analytics", "Cyber"]} color="purple" /></Card><Card><SectionTitle title="Skill growth trends" subtitle="Demand index · Last 6 months" /><div className="line-chart"><svg viewBox="0 0 500 180" preserveAspectRatio="none"><defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6d5dfc" stopOpacity=".3" /><stop offset="1" stopColor="#6d5dfc" stopOpacity="0" /></linearGradient></defs><path d="M0 145 C70 125 85 130 145 100 S230 110 285 65 S390 85 500 20 L500 180 L0 180Z" fill="url(#area)" /><path d="M0 145 C70 125 85 130 145 100 S230 110 285 65 S390 85 500 20" fill="none" stroke="#6d5dfc" strokeWidth="4" /></svg><div>{["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map(x => <span key={x}>{x}</span>)}</div></div></Card></div><Card className="supply-card"><SectionTitle title="Industry demand vs student supply" subtitle="Where the biggest opportunities exist" action={<Badge tone="orange">Average gap 14%</Badge>} /><div className="supply-head"><span>Skill</span><span>Demand</span><span>Student supply</span><span>Talent gap</span></div>{[["React", 82, 68, 14], ["Python", 75, 61, 14], ["Cloud", 72, 51, 21], ["AI / ML", 86, 59, 27], ["Data Analytics", 68, 62, 6]].map(([x, d, s, g]) => <div className="supply-row" key={x as string}><strong>{x}</strong><div><Progress value={d as number} /></div><div><Progress value={s as number} tone="green" /></div><Badge tone={g as number > 20 ? "red" : g as number > 10 ? "orange" : "green"}>{g}% gap</Badge></div>)}</Card></>;
+export const skillDemandData = [
+  {
+    name: "AI & Machine Learning",
+    domain: "AI & Data",
+    demand: 88,
+    supply: 59,
+    gap: 29,
+    growth: "+38%",
+    status: "Critical Shortage",
+    salary: "₹12 - ₹22 LPA",
+    topRoles: "AI Engineer, ML Specialist, LLM Developer",
+    studentGuidance: "Master PyTorch, Transformers & HuggingFace pipelines. Complete Skill Assessment to prove capability.",
+    collegeAction: "Introduce elective lab in generative AI, neural networks, and LLM fine-tuning.",
+    industryAction: "Offer early campus hackathons and pre-placement internship pipelines.",
+  },
+  {
+    name: "Cloud Architecture (AWS / GCP)",
+    domain: "Cloud & DevOps",
+    demand: 82,
+    supply: 51,
+    gap: 31,
+    growth: "+29%",
+    status: "Critical Shortage",
+    salary: "₹9 - ₹18 LPA",
+    topRoles: "Cloud Engineer, Solutions Architect, DevOps Specialist",
+    studentGuidance: "Earn AWS Cloud Practitioner / Solutions Architect or GCP cert and build live serverless apps.",
+    collegeAction: "Deploy AWS Academy / Google Cloud computing student programs and credits.",
+    industryAction: "Sponsor cloud infrastructure sandboxes for senior student capstone projects.",
+  },
+  {
+    name: "React & Modern Web (Next.js)",
+    domain: "Web & Full Stack",
+    demand: 86,
+    supply: 72,
+    gap: 14,
+    growth: "+22%",
+    status: "High Demand",
+    salary: "₹7 - ₹14 LPA",
+    topRoles: "Frontend Engineer, Full Stack Developer, UI Specialist",
+    studentGuidance: "Deepen expertise in TypeScript, state management (Zustand/Redux), and performance optimization.",
+    collegeAction: "Integrate modern React components and TypeScript into web technologies curriculum.",
+    industryAction: "Evaluate candidate GitHub portfolios and verified college project code.",
+  },
+  {
+    name: "Python & Backend APIs (FastAPI/Django)",
+    domain: "Web & Full Stack",
+    demand: 79,
+    supply: 64,
+    gap: 15,
+    growth: "+26%",
+    status: "High Demand",
+    salary: "₹7 - ₹13 LPA",
+    topRoles: "Backend Developer, Software Engineer, Data API Engineer",
+    studentGuidance: "Build high-throughput REST/gRPC backend microservices connected to PostgreSQL databases.",
+    collegeAction: "Emphasize clean software architecture, asynchronous design, and testing.",
+    industryAction: "Recruit versatile Python engineers for both API services and analytics tooling.",
+  },
+  {
+    name: "Docker & Kubernetes (Containers)",
+    domain: "Cloud & DevOps",
+    demand: 74,
+    supply: 48,
+    gap: 26,
+    growth: "+31%",
+    status: "Critical Shortage",
+    salary: "₹9 - ₹17 LPA",
+    topRoles: "DevOps Engineer, Platform Engineer, Site Reliability Engineer",
+    studentGuidance: "Containerize multi-container full-stack applications with Docker Compose and CI/CD actions.",
+    collegeAction: "Add containerization and automated deployments into software engineering lab syllabus.",
+    industryAction: "Seek students with verified DevOps and CI/CD GitHub workflows.",
+  },
+  {
+    name: "Data Analytics & SQL (PostgreSQL/BI)",
+    domain: "AI & Data",
+    demand: 72,
+    supply: 65,
+    gap: 7,
+    growth: "+18%",
+    status: "Balanced",
+    salary: "₹6 - ₹11 LPA",
+    topRoles: "Data Analyst, BI Developer, Analytics Engineer",
+    studentGuidance: "Master advanced SQL window functions, CTE queries, database indexing, and dashboard storytelling.",
+    collegeAction: "Introduce modern business intelligence and database performance tuning labs.",
+    industryAction: "Test candidates on real-world SQL schemas and analytical case studies.",
+  },
+  {
+    name: "Cybersecurity & InfoSec (SOC/PenTest)",
+    domain: "Security",
+    demand: 66,
+    supply: 41,
+    gap: 25,
+    growth: "+34%",
+    status: "Critical Shortage",
+    salary: "₹10 - ₹20 LPA",
+    topRoles: "Security Analyst, SOC Engineer, Application Security",
+    studentGuidance: "Engage in CTF competitions, study OWASP Top 10 vulnerabilities, and earn basic security certs.",
+    collegeAction: "Establish active campus cybersecurity defense club with industry guest mentors.",
+    industryAction: "Fast-track candidates with verified bug bounty experience or CTF achievements.",
+  },
+  {
+    name: "Node.js & Microservices Architecture",
+    domain: "Web & Full Stack",
+    demand: 76,
+    supply: 61,
+    gap: 15,
+    growth: "+20%",
+    status: "High Demand",
+    salary: "₹7.5 - ₹15 LPA",
+    topRoles: "Backend Developer, Distributed Systems Engineer",
+    studentGuidance: "Master asynchronous JavaScript, Redis caching layers, and message brokers (Kafka/RabbitMQ).",
+    collegeAction: "Teach distributed systems patterns and practical event-driven paradigms.",
+    industryAction: "Interview on concurrency, rate-limiting algorithms, and database scaling.",
+  },
+];
+
+export function exportSkillDemandReport() {
+  const headers = [
+    "Skill Name",
+    "Domain / Track",
+    "Industry Demand Index (%)",
+    "Student Supply Index (%)",
+    "Talent Gap Deficit (%)",
+    "6-Month Growth Trend",
+    "Market Status",
+    "Average Entry CTC / Stipend",
+    "Target Engineering Roles",
+    "Student Career Guidance",
+    "College Curriculum Action",
+  ];
+
+  const escapeCSV = (val: unknown) => {
+    const str = String(val ?? "");
+    if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const rows = skillDemandData.map((s) => [
+    escapeCSV(s.name),
+    escapeCSV(s.domain),
+    escapeCSV(`${s.demand}%`),
+    escapeCSV(`${s.supply}%`),
+    escapeCSV(`${s.gap}%`),
+    escapeCSV(s.growth),
+    escapeCSV(s.status),
+    escapeCSV(s.salary),
+    escapeCSV(s.topRoles),
+    escapeCSV(s.studentGuidance),
+    escapeCSV(s.collegeAction),
+  ]);
+
+  const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  const today = new Date().toISOString().split("T")[0];
+  anchor.download = `SkillImprove_Market_Skill_Demand_Report_${today}.csv`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
+
+function SkillDemandAnalytics({
+  role = "industry",
+  navigate,
+}: {
+  role?: Role;
+  navigate?: (p: string) => void;
+}) {
+  const [selectedDomain, setSelectedDomain] = useState<string>("All");
+  const [search, setSearch] = useState<string>("");
+  const [toast, setToast] = useState<string>("");
+
+  const triggerToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3500);
+  };
+
+  const filtered = skillDemandData.filter((item) => {
+    const matchesDomain = selectedDomain === "All" || item.domain === selectedDomain;
+    const matchesSearch =
+      item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.domain.toLowerCase().includes(search.toLowerCase()) ||
+      item.topRoles.toLowerCase().includes(search.toLowerCase());
+    return matchesDomain && matchesSearch;
+  });
+
+  const domains = ["All", "Web & Full Stack", "AI & Data", "Cloud & DevOps", "Security"];
+
+  const roleMeta = {
+    student: {
+      badge: "MARKET SKILL INTELLIGENCE · STUDENT PORTAL",
+      badgeTone: "purple" as const,
+      title: "Industry Skill Demand & Hiring Trends",
+      subtitle:
+        "Real-time market hiring demand from 150+ tech employers. Discover top in-demand skills, identify talent deficits, and target high-paying engineering roles.",
+      perspectiveTitle: "How this empowers your career as a student:",
+      perspectiveText:
+        "Recruiters pay a premium for skills with high talent shortages (such as Cloud Architecture and AI/ML). Prioritize closing these gaps in your learning path to achieve 3.4x higher shortlist and hiring rates.",
+      primaryActionLabel: "View Learning Roadmap",
+      primaryActionPath: "/student/recommendations",
+      secondaryActionLabel: "Assess My Skills",
+      secondaryActionPath: "/student/assessment",
+    },
+    college: {
+      badge: "CURRICULUM & PLACEMENT ALIGNMENT · COLLEGE PORTAL",
+      badgeTone: "green" as const,
+      title: "Industry Skill Demand vs Student Competency",
+      subtitle:
+        "Cross-reference enterprise employer demand with your campus student skill competencies to eliminate curricular gaps, launch targeted training, and maximize placement packages.",
+      perspectiveTitle: "Academic & Placement Cell Strategic Action:",
+      perspectiveText:
+        "Enterprise hiring shows severe talent deficits in Cloud Infrastructure (31% deficit) and AI/ML (29% deficit). Align upcoming department workshops and elective tracks to these domains to boost campus placement offers.",
+      primaryActionLabel: "Launch Training Program",
+      primaryActionPath: "/college/training",
+      secondaryActionLabel: "View Placement Analytics",
+      secondaryActionPath: "/college/placements",
+    },
+    industry: {
+      badge: "AI HIRING INTELLIGENCE · INDUSTRY PORTAL",
+      badgeTone: "purple" as const,
+      title: "Skill Demand & Talent Supply Intelligence",
+      subtitle:
+        "Understand market shifts, evaluate student talent supply across partner universities, and target candidate pools for active recruitment requisitions.",
+      perspectiveTitle: "Recruiter Talent Pipeline Strategy:",
+      perspectiveText:
+        "Candidate pools in React and Python show strong readiness, while Cloud and AI/ML experience enterprise shortages. Leverage SkillImprove's verified projects and assessments to discover top 5% pre-screened talent.",
+      primaryActionLabel: "Post New Opportunity",
+      primaryActionPath: "/industry/post",
+      secondaryActionLabel: "Search Candidates",
+      secondaryActionPath: "/industry/candidates",
+    },
+  }[role];
+
+  return (
+    <>
+      {/* Welcome Banner */}
+      <div className="welcome">
+        <div>
+          <Badge tone={roleMeta.badgeTone}>
+            <Icon name="spark" size={13} /> {roleMeta.badge}
+          </Badge>
+          <h2>{roleMeta.title}</h2>
+          <p>{roleMeta.subtitle}</p>
+        </div>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              exportSkillDemandReport();
+              triggerToast("📥 Skill demand report downloaded successfully!");
+            }}
+            title="Download complete market skill demand report to Excel / CSV"
+          >
+            <Icon name="download" /> Export Demand Report
+          </Button>
+          {navigate && (
+            <>
+              <Button onClick={() => navigate(roleMeta.primaryActionPath)}>
+                {roleMeta.primaryActionLabel} <Icon name="arrow" />
+              </Button>
+              <Button variant="secondary" onClick={() => navigate(roleMeta.secondaryActionPath)}>
+                {roleMeta.secondaryActionLabel}
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {toast && (
+        <div className="profile-notice" style={{ marginBottom: "16px" }}>
+          <span>{toast}</span>
+          <button onClick={() => setToast("")}>×</button>
+        </div>
+      )}
+
+      {/* KPI Cards */}
+      <div className="kpi-grid four" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+        <KpiCard label="Skills tracked" value="48" note="Across 12 technical roles" icon="spark" />
+        <KpiCard label="Fastest growing" value="AI / ML" note="+38% demand increase in 6 mos" icon="chart" tone="purple" />
+        <KpiCard label="Largest talent gap" value="Cloud" note="31% enterprise supply deficit" icon="users" tone="orange" />
+        <KpiCard label="Average market gap" value="19.4%" note="Industry demand vs campus supply" icon="briefcase" tone="green" />
+      </div>
+
+      {/* Analytics Grid: Most in-demand chart + 6-month growth SVG */}
+      <div className="analytics-grid" style={{ marginBottom: "20px" }}>
+        <Card>
+          <SectionTitle
+            title="Most in-demand technical skills"
+            subtitle="Based on verified active requisitions across 150+ hiring partners"
+          />
+          <MiniChart values={[88, 86, 82, 79, 74, 66]} labels={["AI/ML", "React", "Cloud", "Python", "Docker", "Cyber"]} color="purple" />
+        </Card>
+
+        <Card>
+          <SectionTitle
+            title="Skill demand growth trends"
+            subtitle="Hiring volume demand index · Last 6 months"
+            action={<Badge tone="green">+38% AI / ML Surge</Badge>}
+          />
+          <div className="line-chart">
+            <svg viewBox="0 0 500 180" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="area-demand" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#6d5dfc" stopOpacity=".35" />
+                  <stop offset="1" stopColor="#6d5dfc" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M0 145 C70 125 85 130 145 100 S230 110 285 65 S390 85 500 20 L500 180 L0 180Z" fill="url(#area-demand)" />
+              <path d="M0 145 C70 125 85 130 145 100 S230 110 285 65 S390 85 500 20" fill="none" stroke="#6d5dfc" strokeWidth="4" />
+            </svg>
+            <div>{["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((x) => <span key={x}>{x}</span>)}</div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Role Perspective Insight Card */}
+      <Card
+        style={{
+          marginBottom: "20px",
+          padding: "16px 20px",
+          background: role === "student" ? "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)" : role === "college" ? "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)" : "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
+          border: "1px solid " + (role === "student" ? "#ddd6fe" : role === "college" ? "#bbf7d0" : "#bfdbfe"),
+          borderRadius: "12px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+          <div
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "9px",
+              background: role === "student" ? "#6d28d9" : role === "college" ? "#15803d" : "#1d4ed8",
+              color: "#ffffff",
+              display: "grid",
+              placeItems: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Icon name="spark" size={18} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <strong style={{ display: "block", fontSize: "14px", color: "var(--ink)", marginBottom: "4px" }}>
+              {roleMeta.perspectiveTitle}
+            </strong>
+            <p style={{ margin: 0, fontSize: "13px", color: "#334155", lineHeight: "1.5" }}>
+              {roleMeta.perspectiveText}
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Domain Filters & Search Bar */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "12px",
+          marginBottom: "16px",
+        }}
+      >
+        <div className="tabs" style={{ margin: 0 }}>
+          {domains.map((dom) => (
+            <button
+              key={dom}
+              className={selectedDomain === dom ? "active" : ""}
+              onClick={() => setSelectedDomain(dom)}
+            >
+              {dom}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <input
+            placeholder="Search skill, role, domain..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              minHeight: "36px",
+              padding: "0 12px",
+              border: "1px solid var(--line)",
+              borderRadius: "8px",
+              fontSize: "12px",
+              background: "white",
+              minWidth: "220px",
+            }}
+          />
+          {search && (
+            <button className="btn btn-ghost" style={{ padding: "4px 8px", fontSize: "11px" }} onClick={() => setSearch("")}>
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Detailed Demand vs Supply Table */}
+      <Card className="supply-card">
+        <SectionTitle
+          title="Industry hiring demand vs student verified supply"
+          subtitle="Real-time talent metrics comparing employer requisitions with verified student competencies"
+          action={<Badge tone="orange">Average Deficit: 19.4%</Badge>}
+        />
+        <div className="supply-head">
+          <span>Skill & Track</span>
+          <span>Employer Demand</span>
+          <span>Student Supply</span>
+          <span>Talent Deficit</span>
+        </div>
+
+        {filtered.map((item) => (
+          <div
+            key={item.name}
+            style={{
+              padding: "16px 0",
+              borderBottom: "1px solid var(--line)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1.3fr 1fr 1fr 110px",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                  <strong style={{ fontSize: "14px", color: "var(--ink)" }}>{item.name}</strong>
+                  <Badge tone={item.domain === "AI & Data" ? "purple" : item.domain === "Cloud & DevOps" ? "orange" : item.domain === "Security" ? "red" : "blue"}>
+                    {item.domain}
+                  </Badge>
+                </div>
+                <small style={{ color: "#64748b", fontSize: "11px", display: "block", marginTop: "2px" }}>
+                  Typical CTC: <strong>{item.salary}</strong> · {item.topRoles}
+                </small>
+              </div>
+
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "4px", color: "#475569" }}>
+                  <span>Enterprise Need</span>
+                  <strong>{item.demand}%</strong>
+                </div>
+                <Progress value={item.demand} tone="purple" />
+              </div>
+
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "4px", color: "#475569" }}>
+                  <span>Campus Ready</span>
+                  <strong>{item.supply}%</strong>
+                </div>
+                <Progress value={item.supply} tone="green" />
+              </div>
+
+              <div style={{ textAlign: "right" }}>
+                <Badge tone={item.gap > 20 ? "red" : item.gap > 10 ? "orange" : "green"}>
+                  {item.gap}% Gap
+                </Badge>
+                <small style={{ display: "block", color: "#10b981", fontSize: "10px", fontWeight: 700, marginTop: "2px" }}>
+                  {item.growth} YoY
+                </small>
+              </div>
+            </div>
+
+            {/* Action & Guidance Row */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "8px",
+                padding: "8px 12px",
+                background: "#f8fafc",
+                borderRadius: "8px",
+                fontSize: "12px",
+              }}
+            >
+              <div style={{ color: "#475569", flex: 1, minWidth: "240px" }}>
+                {role === "student" ? (
+                  <>🎯 <strong>Action for You:</strong> {item.studentGuidance}</>
+                ) : role === "college" ? (
+                  <>🎓 <strong>Curriculum Strategy:</strong> {item.collegeAction}</>
+                ) : (
+                  <>💼 <strong>Hiring Advice:</strong> {item.industryAction}</>
+                )}
+              </div>
+
+              {navigate && (
+                <div>
+                  {role === "student" ? (
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: "4px 10px", fontSize: "11px" }}
+                      onClick={() => navigate("/student/recommendations")}
+                    >
+                      Bridge Skill Gap <Icon name="arrow" size={11} />
+                    </button>
+                  ) : role === "college" ? (
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: "4px 10px", fontSize: "11px" }}
+                      onClick={() => navigate("/college/training")}
+                    >
+                      Plan Workshop <Icon name="arrow" size={11} />
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: "4px 10px", fontSize: "11px" }}
+                      onClick={() => navigate("/industry/candidates")}
+                    >
+                      Find Candidates <Icon name="arrow" size={11} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </Card>
+    </>
+  );
+}
+
+function IndustryAnalytics({ navigate }: { navigate?: (p: string) => void } = {}) {
+  return <SkillDemandAnalytics role="industry" navigate={navigate} />;
 }
 
 function MatchedStudents({ navigate, onContactCandidate }: { navigate: (p: string) => void; onContactCandidate?: (cand: any) => void }) {
@@ -2489,6 +3025,7 @@ function downloadPlacementReportCsv() {
 
 function CollegePages({ page, navigate }: { page: string; navigate: (p: string) => void }) {
   if (["skills", "student-skills"].includes(page)) return <CollegeSkills />;
+  if (["skill-demand", "analytics"].includes(page)) return <SkillDemandAnalytics role="college" navigate={navigate} />;
   if (page === "verify-projects") return <CollegeVerifyProjects />;
   if (page === "training") return <Training />;
   if (page === "connections") return <Connections />;
