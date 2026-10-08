@@ -5,6 +5,7 @@ import Assessments from "./Assessments";
 import Opportunities from "./Opportunities";
 import FeatureDialog from "./FeatureDialog";
 import CareerRecommendations from "./CareerRecommendations";
+import ResumeAnalyzerATS from "./ResumeAnalyzerATS";
 import {
   Application,
   APPLICATIONS_KEY,
@@ -81,6 +82,7 @@ const navigation: Record<Role, { label: string; icon: IconName; path: string }[]
   student: [
     { label: "Dashboard", icon: "grid", path: "dashboard" },
     { label: "My Profile", icon: "user", path: "profile" },
+    { label: "Resume Analyzer (ATS)", icon: "spark", path: "resume-analyzer" },
     { label: "Skill Assessment", icon: "file", path: "assessment" },
     { label: "Learning Recommendations", icon: "book", path: "recommendations" },
     { label: "Jobs & Internships", icon: "search", path: "jobs" },
@@ -305,7 +307,7 @@ function AppShell({ role, page, navigate, logout }: { role: Role; page: string; 
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
   const config = role === "student" ? { ...roleConfig.student, name: studentName, initials: studentName.split(" ").map(word => word[0]).join("").slice(0, 2) } : roleConfig[role];
-  const titles: Record<string, string> = { dashboard: "Dashboard", profile: "My Profile", skills: role === "student" ? "My Skills" : "Skill Analytics", "verify-projects": "Student Projects Verification", projects: "Projects", certifications: "Certifications", resume: "Resume", assessment: "Skill Assessment", gaps: "Skill Gap Analysis", learning: "Career & Learning Recommendations", recommendations: "Career & Learning Recommendations", career: "Career & Learning Recommendations", jobs: "Jobs & Internships", applications: "Applications", candidates: "Candidate Search", candidate: "Candidate Profile", "matched-students": "Matched Students Intelligence", recommended: "Recommended Candidates", opportunities: "Opportunities", "company-profile": "Dashboard", "skill-demand": "Skill Demand", analytics: role === "industry" ? "Analytics" : "Placement Analytics", post: "Post Opportunity", students: "Student Management", "student-skills": "Student Skills", training: "Training Recommendations", connections: "Industry Connections", placements: "Placement Analytics" };
+  const titles: Record<string, string> = { dashboard: "Dashboard", profile: "My Profile", "resume-analyzer": "Resume Analyzer (ATS)", skills: role === "student" ? "My Skills" : "Skill Analytics", "verify-projects": "Student Projects Verification", projects: "Projects", certifications: "Certifications", resume: "Resume", assessment: "Skill Assessment", gaps: "Skill Gap Analysis", learning: "Career & Learning Recommendations", recommendations: "Career & Learning Recommendations", career: "Career & Learning Recommendations", jobs: "Jobs & Internships", applications: "Applications", candidates: "Candidate Search", candidate: "Candidate Profile", "matched-students": "Matched Students Intelligence", recommended: "Recommended Candidates", opportunities: "Opportunities", "company-profile": "Dashboard", "skill-demand": "Skill Demand", analytics: role === "industry" ? "Analytics" : "Placement Analytics", post: "Post Opportunity", students: "Student Management", "student-skills": "Student Skills", training: "Training Recommendations", connections: "Industry Connections", placements: "Placement Analytics" };
   return <div className={`app-shell role-${role}`}>
     <aside id="workspace-navigation" inert={!menu} aria-label="Workspace navigation" className={menu ? "open" : ""} onMouseEnter={cancelCloseTimeout} onMouseLeave={handleMenuHoverLeave}><div className="side-head"><Logo dark /><button aria-label="Close navigation" onClick={closeSidebar}>×</button></div><div className={`role-pill ${role}`}><span>{config.initials}</span><div><strong>{config.name}</strong><small>{config.label} workspace</small></div></div><nav>{navigation[role].map((item, i) => <button key={`${item.label}-${i}`} className={page === item.path ? "active" : ""} onClick={() => { navigate(`/${role}/${item.path}`); closeSidebar(); }}><Icon name={item.icon} />{item.label}</button>)}</nav><div className="side-bottom"><button onClick={() => { closeSidebar(); setSettingsOpen(true); }}><Icon name="settings" /> Settings</button><button onClick={logout}><Icon name="logout" /> Sign out</button></div></aside>
     {menu && <div className="scrim" onClick={closeSidebar} />}
@@ -341,7 +343,7 @@ function WorkspaceSearch({ role, navigate, close }: { role: Role; navigate: (pat
       { label: "Verified skills · React, JavaScript, Python", icon: "spark" as IconName, path: "skills" },
       { label: "Projects · AI Career Recommendation System", icon: "briefcase" as IconName, path: "projects" },
       { label: "Certifications · AWS, Meta, Python", icon: "check" as IconName, path: "certifications" },
-      { label: "Resume · Upload and analysis", icon: "file" as IconName, path: "resume" },
+      { label: "Resume Analyzer (ATS) · Role-specific matching and score", icon: "spark" as IconName, path: "resume-analyzer" },
     ] : []),
     ...(role === "industry" ? [
       { label: "Matched Students · AI Opportunity Candidate Matching", icon: "spark" as IconName, path: "matched-students" },
@@ -726,7 +728,8 @@ function SettingsModal({ role, close }: { role: Role; close: () => void }) {
 const SkillEvidence = ({ name, level, score, projects, certificate = 1 }: { name: string; level: string; score: number; projects: number; certificate?: number }) => <Card className="evidence-card"><div className="evidence-top"><div className="skill-logo">{name.slice(0, 2)}</div><div><h3>{name}</h3><span>{level}</span></div><Badge tone="green"><Icon name="check" size={13} /> Verified</Badge></div><div className="evidence-grid"><div><small>Assessment</small><strong>{score}%</strong></div><div><small>Projects</small><strong>{projects}</strong></div><div><small>Certification</small><strong>{certificate}</strong></div></div><div className="confidence"><span><i /> High confidence</span><small>Active recently</small></div></Card>;
 
 function StudentPages({ page, navigate }: { page: string; navigate: (p: string) => void }) {
-  if (["profile", "skills", "projects", "certifications", "resume"].includes(page)) return <StudentProfile focus={page} />;
+  if (page === "resume-analyzer") return <ResumeAnalyzerATS navigate={navigate} />;
+  if (["profile", "skills", "projects", "certifications", "resume"].includes(page)) return <StudentProfile focus={page} navigate={navigate} />;
   if (page === "assessment") return <Assessments navigate={navigate} />;
   if (["recommendations", "learning", "career", "gaps"].includes(page)) return <CareerRecommendations navigate={navigate} />;
   if (page === "jobs") return <Opportunities navigate={navigate} />;
@@ -1092,8 +1095,8 @@ function ResumePanel({ onFile }: { onFile: (file: File) => void }) {
   </Card>;
 }
 
-function StudentProfile({ focus = "profile" }: { focus?: string }) {
-  return <ProfileWorkspace focus={focus} resume={onFile => <ResumePanel onFile={onFile} />} />;
+function StudentProfile({ focus = "profile", navigate }: { focus?: string; navigate?: (p: string) => void }) {
+  return <ProfileWorkspace focus={focus} navigate={navigate} resume={onFile => <ResumePanel onFile={onFile} />} />;
 }
 
 function StudentGaps({ navigate }: { navigate: (p: string) => void }) {

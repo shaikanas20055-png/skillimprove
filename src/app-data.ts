@@ -269,6 +269,18 @@ export function verifyStudentProject(projectId: string, verifiedBy: string = "AB
   });
 }
 
+export function updateStudentProject(projectId: string, updates: Partial<StudentProject>) {
+  const current = getProjects();
+  const updated = current.map((p) => (p.id === projectId ? { ...p, ...updates } : p));
+  saveStored(PROJECTS_KEY, updated);
+}
+
+export function deleteStudentProject(projectId: string) {
+  const current = getProjects();
+  const updated = current.filter((p) => p.id !== projectId);
+  saveStored(PROJECTS_KEY, updated);
+}
+
 export function useProjects() {
   const [projects, setProjects] = useState<StudentProject[]>(getProjects);
   useEffect(() => {
@@ -282,6 +294,103 @@ export function useProjects() {
   }, []);
   return projects;
 }
+
+// -------------------------------------------------------------
+// Student Certificates
+// -------------------------------------------------------------
+export type StudentCertificate = {
+  id: string;
+  studentName?: string;
+  title: string;
+  issuer: string;
+  issueDate?: string;
+  credentialId?: string;
+  credentialUrl?: string;
+  description: string;
+  imageUrl?: string;
+  fileName?: string;
+  status: "verified" | "pending";
+};
+
+export const CERTIFICATES_KEY = "skillimprove-certificates";
+
+export const initialCertificates: StudentCertificate[] = [
+  {
+    id: "cert-1",
+    studentName: "Alex Johnson",
+    title: "AWS Cloud Practitioner",
+    issuer: "Amazon Web Services (AWS)",
+    issueDate: "Aug 2024",
+    credentialId: "AWS-CLF-0092834",
+    credentialUrl: "https://aws.amazon.com/verification",
+    description: "Demonstrated fundamental understanding of AWS Cloud concepts, security, architecture, pricing, and support models.",
+    status: "verified",
+  },
+  {
+    id: "cert-2",
+    studentName: "Alex Johnson",
+    title: "Meta Front-End Developer",
+    issuer: "Meta",
+    issueDate: "May 2024",
+    credentialId: "META-FE-7729104",
+    credentialUrl: "https://coursera.org/verify/meta-fe",
+    description: "In-depth specialization covering modern React components, JavaScript ES6+, responsive styling, and web accessibility.",
+    status: "verified",
+  },
+  {
+    id: "cert-3",
+    studentName: "Alex Johnson",
+    title: "Python Programming Specialization",
+    issuer: "University of Michigan",
+    issueDate: "Jan 2024",
+    credentialId: "UMICH-PY-448201",
+    credentialUrl: "https://coursera.org/verify/python-spec",
+    description: "Comprehensive mastery in core Python data structures, web data processing, SQLite integration, and RESTful APIs.",
+    status: "verified",
+  },
+];
+
+export function getCertificates(): StudentCertificate[] {
+  return readStored<StudentCertificate[]>(CERTIFICATES_KEY, initialCertificates);
+}
+
+export function addStudentCertificate(cert: Omit<StudentCertificate, "id" | "status">) {
+  const current = getCertificates();
+  const newCert: StudentCertificate = {
+    ...cert,
+    id: `cert-${Date.now()}`,
+    status: "verified",
+  };
+  saveStored(CERTIFICATES_KEY, [newCert, ...current]);
+  return newCert;
+}
+
+export function updateStudentCertificate(certId: string, updates: Partial<StudentCertificate>) {
+  const current = getCertificates();
+  const updated = current.map((c) => (c.id === certId ? { ...c, ...updates } : c));
+  saveStored(CERTIFICATES_KEY, updated);
+}
+
+export function deleteStudentCertificate(certId: string) {
+  const current = getCertificates();
+  const updated = current.filter((c) => c.id !== certId);
+  saveStored(CERTIFICATES_KEY, updated);
+}
+
+export function useCertificates() {
+  const [certs, setCerts] = useState<StudentCertificate[]>(getCertificates);
+  useEffect(() => {
+    const update = () => setCerts(getCertificates());
+    window.addEventListener(DATA_EVENT, update);
+    window.addEventListener("storage", update);
+    return () => {
+      window.removeEventListener(DATA_EVENT, update);
+      window.removeEventListener("storage", update);
+    };
+  }, []);
+  return certs;
+}
+
 
 // -------------------------------------------------------------
 // College Training Programs & Industry Connections
