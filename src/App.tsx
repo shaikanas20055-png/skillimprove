@@ -6,6 +6,17 @@ import Opportunities from "./Opportunities";
 import FeatureDialog from "./FeatureDialog";
 import CareerRecommendations from "./CareerRecommendations";
 import ResumeAnalyzerATS from "./ResumeAnalyzerATS";
+import { ShortlistedCandidatesView } from "./ShortlistedCandidatesView";
+import { OfferSentModal } from "./OfferSentModal";
+import {
+  useShortlistedCandidates,
+  exportShortlistedCandidatesToExcel,
+  sendEmployeeRecruitmentOffer,
+  OfferEmailPayload,
+  isCandidateShortlisted,
+  toggleShortlistCandidate,
+  candidateEmailDirectory,
+} from "./recruiter-shortlist";
 import {
   Application,
   APPLICATIONS_KEY,
@@ -52,7 +63,9 @@ type IconName =
   | "menu"
   | "logout"
   | "plus"
-  | "file";
+  | "file"
+  | "download"
+  | "mail";
 
 const roleConfig = {
   student: {
@@ -74,7 +87,7 @@ const roleConfig = {
     name: "ABC Institute of Technology",
     email: "college@skillimprove.com",
     password: "College@123",
-    initials: "AI",
+    initials: "AB",
   },
 };
 
@@ -94,6 +107,7 @@ const navigation: Record<Role, { label: string; icon: IconName; path: string }[]
     { label: "Opportunities", icon: "briefcase", path: "opportunities" },
     { label: "Candidate Search", icon: "search", path: "candidates" },
     { label: "Recommended", icon: "spark", path: "recommended" },
+    { label: "Shortlisted (Excel)", icon: "download", path: "shortlisted" },
     { label: "Applications", icon: "file", path: "applications" },
     { label: "Skill Demand", icon: "chart", path: "skill-demand" },
   ],
@@ -127,6 +141,8 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
     logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9" /></>,
     plus: <path d="M12 5v14M5 12h14" />,
     file: <><path d="M6 2h8l4 4v16H6zM14 2v5h5M9 13h6m-6 4h6" /></>,
+    download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></>,
+    mail: <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></>,
   };
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
@@ -307,9 +323,93 @@ function AppShell({ role, page, navigate, logout }: { role: Role; page: string; 
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
   const config = role === "student" ? { ...roleConfig.student, name: studentName, initials: studentName.split(" ").map(word => word[0]).join("").slice(0, 2) } : roleConfig[role];
-  const titles: Record<string, string> = { dashboard: "Dashboard", profile: "My Profile", "resume-analyzer": "Resume Analyzer (ATS)", skills: role === "student" ? "My Skills" : "Skill Analytics", "verify-projects": "Student Projects Verification", projects: "Projects", certifications: "Certifications", resume: "Resume", assessment: "Skill Assessment", gaps: "Skill Gap Analysis", learning: "Career & Learning Recommendations", recommendations: "Career & Learning Recommendations", career: "Career & Learning Recommendations", jobs: "Jobs & Internships", applications: "Applications", candidates: "Candidate Search", candidate: "Candidate Profile", "matched-students": "Matched Students Intelligence", recommended: "Recommended Candidates", opportunities: "Opportunities", "company-profile": "Dashboard", "skill-demand": "Skill Demand", analytics: role === "industry" ? "Analytics" : "Placement Analytics", post: "Post Opportunity", students: "Student Management", "student-skills": "Student Skills", training: "Training Recommendations", connections: "Industry Connections", placements: "Placement Analytics" };
+  const { count: shortlistedCount } = useShortlistedCandidates();
+  const titles: Record<string, string> = { dashboard: "Dashboard", profile: "My Profile", "resume-analyzer": "Resume Analyzer (ATS)", skills: role === "student" ? "My Skills" : "Skill Analytics", "verify-projects": "Student Projects Verification", projects: "Projects", certifications: "Certifications", resume: "Resume", assessment: "Skill Assessment", gaps: "Skill Gap Analysis", learning: "Career & Learning Recommendations", recommendations: "Career & Learning Recommendations", career: "Career & Learning Recommendations", jobs: "Jobs & Internships", applications: "Applications", shortlisted: "Shortlisted Candidates & Excel Roster", candidates: "Candidate Search", candidate: "Candidate Profile", "matched-students": "Matched Students Intelligence", recommended: "Recommended Candidates", opportunities: "Opportunities", "company-profile": "Dashboard", "skill-demand": "Skill Demand", analytics: role === "industry" ? "Analytics" : "Placement Analytics", post: "Post Opportunity", students: "Student Management", "student-skills": "Student Skills", training: "Training Recommendations", connections: "Industry Connections", placements: "Placement Analytics" };
   return <div className={`app-shell role-${role}`}>
-    <aside id="workspace-navigation" inert={!menu} aria-label="Workspace navigation" className={menu ? "open" : ""} onMouseEnter={cancelCloseTimeout} onMouseLeave={handleMenuHoverLeave}><div className="side-head"><Logo dark /><button aria-label="Close navigation" onClick={closeSidebar}>×</button></div><div className={`role-pill ${role}`}><span>{config.initials}</span><div><strong>{config.name}</strong><small>{config.label} workspace</small></div></div><nav>{navigation[role].map((item, i) => <button key={`${item.label}-${i}`} className={page === item.path ? "active" : ""} onClick={() => { navigate(`/${role}/${item.path}`); closeSidebar(); }}><Icon name={item.icon} />{item.label}</button>)}</nav><div className="side-bottom"><button onClick={() => { closeSidebar(); setSettingsOpen(true); }}><Icon name="settings" /> Settings</button><button onClick={logout}><Icon name="logout" /> Sign out</button></div></aside>
+    <aside id="workspace-navigation" inert={!menu} aria-label="Workspace navigation" className={menu ? "open" : ""} onMouseEnter={cancelCloseTimeout} onMouseLeave={handleMenuHoverLeave}>
+      <div className="side-head"><Logo dark /><button aria-label="Close navigation" onClick={closeSidebar}>×</button></div>
+      <div className={`role-pill ${role}`}><span>{config.initials}</span><div><strong>{config.name}</strong><small>{config.label} workspace</small></div></div>
+      <nav>
+        {navigation[role].map((item, i) => (
+          <button
+            key={`${item.label}-${i}`}
+            className={page === item.path ? "active" : ""}
+            onClick={() => { navigate(`/${role}/${item.path}`); closeSidebar(); }}
+          >
+            <Icon name={item.icon} />
+            {item.label}
+            {role === "industry" && item.path === "shortlisted" && (
+              <span
+                style={{
+                  marginLeft: "auto",
+                  background: "rgba(16, 185, 129, 0.25)",
+                  color: "#34d399",
+                  padding: "1px 6px",
+                  borderRadius: "10px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                }}
+              >
+                {shortlistedCount}
+              </span>
+            )}
+          </button>
+        ))}
+      </nav>
+
+      {/* Recruiter Shortlist Excel Download in Sidebar */}
+      {role === "industry" && (
+        <div
+          style={{
+            margin: "10px 8px 6px",
+            padding: "11px 12px",
+            background: "rgba(255, 255, 255, 0.04)",
+            borderRadius: "10px",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+            <span style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", color: "#818cf8", textTransform: "uppercase" }}>RECRUITER ROSTER</span>
+            <span style={{ fontSize: "10px", background: "rgba(16, 185, 129, 0.25)", color: "#34d399", padding: "1px 6px", borderRadius: "4px", fontWeight: 700 }}>
+              {shortlistedCount} Saved
+            </span>
+          </div>
+          <strong style={{ display: "block", fontSize: "11px", color: "#f8fafc", marginBottom: "2px" }}>Shortlisted Candidates</strong>
+          <p style={{ margin: "0 0 8px", fontSize: "10px", color: "#94a3b8", lineHeight: "1.3" }}>
+            Export names & email IDs of shortlisted candidates into an Excel spreadsheet.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              exportShortlistedCandidatesToExcel();
+              closeSidebar();
+            }}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+              color: "#ffffff",
+              border: "none",
+              padding: "8px 10px",
+              borderRadius: "7px",
+              fontSize: "11px",
+              fontWeight: 700,
+              cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(16, 185, 129, 0.25)",
+            }}
+            title="Download Excel spreadsheet with shortlisted candidate names and email IDs"
+          >
+            <Icon name="download" size={13} />
+            <span>Download Excel Sheet</span>
+          </button>
+        </div>
+      )}
+
+      <div className="side-bottom"><button onClick={() => { closeSidebar(); setSettingsOpen(true); }}><Icon name="settings" /> Settings</button><button onClick={logout}><Icon name="logout" /> Sign out</button></div>
+    </aside>
     {menu && <div className="scrim" onClick={closeSidebar} />}
     <main className="app-main"><header><div><button aria-label="Open navigation" aria-expanded={menu} aria-controls="workspace-navigation" className="menu-btn" onMouseEnter={handleMenuHoverEnter} onMouseLeave={handleMenuHoverLeave} onClick={() => { cancelCloseTimeout(); setMenu(prev => { const next = !prev; setIsPinned(next); return next; }); }}><Icon name="menu" /></button><div><small>{config.label} portal</small><h1>{page === "dashboard" ? "Dashboard" : titles[page] || "Dashboard"}</h1></div></div><div className="header-tools"><button aria-label="Search workspace" className="search-box" onClick={() => setSearchOpen(true)}><Icon name="search" /><span>Search anything...</span><kbd>⌘ K</kbd></button><button className="icon-btn notification-trigger" aria-label={`Open notifications, ${notices.filter(item => !item.read).length} unread`} onClick={() => setNotificationsOpen(true)}><Icon name="bell" />{notices.some(item => !item.read) && <i />}</button><div className="user-chip"><span>{config.initials}</span><div><strong>{config.name}</strong><small>{config.label}</small></div></div></div></header>
       <div className="app-content">{role === "student" ? <StudentPages page={page} navigate={navigate} /> : role === "industry" ? <IndustryPages page={page} navigate={navigate} /> : <CollegePages page={page} navigate={navigate} />}</div>
@@ -346,6 +446,7 @@ function WorkspaceSearch({ role, navigate, close }: { role: Role; navigate: (pat
       { label: "Resume Analyzer (ATS) · Role-specific matching and score", icon: "spark" as IconName, path: "resume-analyzer" },
     ] : []),
     ...(role === "industry" ? [
+      { label: "Shortlisted Candidates · Download Excel Roster with Names & Emails", icon: "download" as IconName, path: "shortlisted" },
       { label: "Matched Students · AI Opportunity Candidate Matching", icon: "spark" as IconName, path: "matched-students" },
     ] : []),
   ];
@@ -1108,7 +1209,7 @@ function LearningPath() {
   return <><div className="welcome"><div><Badge tone="blue"><Icon name="spark" size={13} /> PERSONALIZED ROADMAP</Badge><h2>Frontend Developer Roadmap</h2><p>Built around your skills, goals and industry demand.</p></div><div className="roadmap-progress"><span>Overall progress <strong>42%</strong></span><Progress value={42} /></div></div><div className="roadmap">{[["HTML & CSS Foundations", "Completed", "Beginner", "100"], ["Modern JavaScript", "Completed", "Intermediate", "100"], ["Advanced React Development", "In progress", "Advanced", "68"], ["Testing React Applications", "Upcoming", "Intermediate", "0"], ["TypeScript Essentials", "Upcoming", "Intermediate", "0"], ["System Design Basics", "Upcoming", "Advanced", "0"]].map(([name, status, level, progress], i) => <div className={`roadmap-item ${status.toLowerCase().replace(" ", "-")}`} key={name}><div className="road-line"><span>{status === "Completed" ? <Icon name="check" /> : i + 1}</span></div><Card><div className="road-main"><div><Badge tone={status === "Completed" ? "green" : status === "In progress" ? "blue" : "gray"}>{status}</Badge><h3>{name}</h3><p>{level} · {i < 2 ? "Completed" : `${[0, 0, 4, 2, 3, 2][i]} weeks`} · {progress}%</p></div>{status === "In progress" ? <Button>Continue learning</Button> : status === "Upcoming" ? <Button variant="secondary">Preview</Button> : <span className="complete-mark"><Icon name="check" /></span>}</div>{status === "In progress" && <><Progress value={68} /><div className="next-lesson"><Icon name="book" /><div><small>UP NEXT</small><strong>State management patterns</strong></div><span>18 min</span></div></>}</Card></div>)}</div></>;
 }
 
-function Applications({ role }: { role: "student" | "industry" }) {
+function Applications({ role, onContactCandidate }: { role: "student" | "industry"; onContactCandidate?: (cand: any) => void }) {
   const [saved, setSaved] = useState<Application[]>(() => readStored(APPLICATIONS_KEY, []));
   const [viewingResume, setViewingResume] = useState<{ candidateName: string; resumeFileName?: string; score?: number; college?: string } | null>(null);
   const [activeTab, setActiveTab] = useState("All");
@@ -1225,6 +1326,20 @@ function Applications({ role }: { role: "student" | "industry" }) {
 
   const handleStatusChange = (id: string, newStatus: string, applicantName: string) => {
     setStatusMap(prev => ({ ...prev, [id]: newStatus }));
+    if (newStatus === "Shortlisted") {
+      const applicant = allIndustryApplicants.find(a => a.id === id);
+      if (applicant) {
+        toggleShortlistCandidate({
+          name: applicant.name,
+          email: applicant.studentEmail || candidateEmailDirectory[applicant.name] || `${applicant.name.toLowerCase().replace(/\s+/g, ".")}@student.apex.edu`,
+          role: applicant.role,
+          company: applicant.company,
+          college: applicant.college,
+          match: applicant.match,
+          readiness: applicant.readiness
+        });
+      }
+    }
     setToastMessage(`Status for ${applicantName} updated to "${newStatus}".`);
     setTimeout(() => setToastMessage(""), 3000);
   };
@@ -1274,7 +1389,12 @@ function Applications({ role }: { role: "student" | "industry" }) {
           <h2>Application management</h2>
           <p>Review student applications, inspect verified resumes, and advance candidates through hiring stages.</p>
         </div>
-        <Button variant="secondary" onClick={() => downloadStudentResume("Alex Johnson")}>Export applicant roster</Button>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <Button variant="secondary" onClick={() => exportShortlistedCandidatesToExcel()} title="Download Excel sheet of shortlisted candidates">
+            <Icon name="download" /> Download Shortlisted Excel
+          </Button>
+          <Button variant="secondary" onClick={() => downloadStudentResume("Alex Johnson")}>Export applicant roster</Button>
+        </div>
       </div>
 
       {toastMessage && (
@@ -1353,7 +1473,27 @@ function Applications({ role }: { role: "student" | "industry" }) {
                     </button>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: "6px 10px", fontSize: "11px", display: "flex", alignItems: "center", gap: "4px" }}
+                      onClick={() => {
+                        if (onContactCandidate) {
+                          onContactCandidate({
+                            name: applicant.name,
+                            email: applicant.studentEmail || candidateEmailDirectory[applicant.name] || `${applicant.name.toLowerCase().replace(/\s+/g, ".")}@student.apex.edu`,
+                            role: applicant.role,
+                            company: applicant.company,
+                            college: applicant.college,
+                            match: applicant.match,
+                            readiness: applicant.readiness
+                          });
+                        }
+                      }}
+                      title="Directly redirect to email and send employment recruitment offer to shaikanas20055@gmail"
+                    >
+                      <Icon name="mail" size={12} /> Contact (Offer)
+                    </button>
                     <select
                       value={currentStatus}
                       onChange={e => handleStatusChange(applicant.id, e.target.value, applicant.name)}
@@ -1387,31 +1527,234 @@ function Applications({ role }: { role: "student" | "industry" }) {
 }
 
 function IndustryPages({ page, navigate }: { page: string; navigate: (p: string) => void }) {
-  if (["candidates", "recommended"].includes(page)) return <CandidateSearch navigate={navigate} />;
-  if (page === "matched-students") return <MatchedStudents navigate={navigate} />;
-  if (page === "candidate") return <CandidateProfile />;
-  if (["analytics", "skill-demand"].includes(page)) return <IndustryAnalytics />;
-  if (page === "applications") return <Applications role="industry" />;
-  if (page === "opportunities") return <IndustryOpportunities navigate={navigate} />;
-  if (page === "post") return <PostOpportunity navigate={navigate} />;
-  return <IndustryDashboard navigate={navigate} />;
+  const [offerPayload, setOfferPayload] = useState<OfferEmailPayload | null>(null);
+  const [viewingResume, setViewingResume] = useState<{ candidateName: string; resumeFileName?: string; score?: number; college?: string } | null>(null);
+
+  const handleContactCandidate = (candidate: {
+    name: string;
+    email?: string;
+    role?: string;
+    college?: string;
+    company?: string;
+    match?: number;
+    readiness?: number;
+  }) => {
+    const payload = sendEmployeeRecruitmentOffer(candidate);
+    setOfferPayload(payload);
+  };
+
+  let content: ReactNode = null;
+  if (["candidates", "recommended"].includes(page)) {
+    content = <CandidateSearch navigate={navigate} onContactCandidate={handleContactCandidate} />;
+  } else if (page === "matched-students") {
+    content = <MatchedStudents navigate={navigate} onContactCandidate={handleContactCandidate} />;
+  } else if (page === "candidate") {
+    content = <CandidateProfile onContactCandidate={handleContactCandidate} />;
+  } else if (["analytics", "skill-demand"].includes(page)) {
+    content = <IndustryAnalytics />;
+  } else if (page === "applications") {
+    content = <Applications role="industry" onContactCandidate={handleContactCandidate} />;
+  } else if (page === "opportunities") {
+    content = <IndustryOpportunities navigate={navigate} />;
+  } else if (page === "post") {
+    content = <PostOpportunity navigate={navigate} />;
+  } else if (page === "shortlisted") {
+    content = <ShortlistedCandidatesView navigate={navigate} openResumeModal={(c) => setViewingResume(c)} />;
+  } else {
+    content = <IndustryDashboard navigate={navigate} onContactCandidate={handleContactCandidate} />;
+  }
+
+  return (
+    <>
+      {content}
+      {offerPayload && <OfferSentModal payload={offerPayload} close={() => setOfferPayload(null)} />}
+      {viewingResume && (
+        <ResumeViewerModal
+          candidateName={viewingResume.candidateName}
+          resumeFileName={viewingResume.resumeFileName}
+          score={viewingResume.score}
+          college={viewingResume.college}
+          close={() => setViewingResume(null)}
+        />
+      )}
+    </>
+  );
 }
 
 function KpiCard({ label, value, note, icon, tone = "blue" }: { label: string; value: string; note: string; icon: IconName; tone?: string }) {
   return <Card className="kpi-card"><div className={`icon-tile ${tone}`}><Icon name={icon} /></div><div><span>{label}</span><strong>{value}</strong><small>{note}</small></div></Card>;
 }
 
-function IndustryDashboard({ navigate }: { navigate: (p: string) => void }) {
+function IndustryDashboard({ navigate, onContactCandidate }: { navigate: (p: string) => void; onContactCandidate?: (c: any) => void }) {
   const opportunities = useOpportunities();
-  return <><div className="welcome"><div><Badge tone="purple"><Icon name="building" size={13} /> INDUSTRY WORKSPACE</Badge><h2>Welcome, TechNova Solutions</h2><p>Here’s what’s happening across your talent pipeline.</p></div><Button onClick={() => navigate("/industry/post")}><Icon name="plus" /> Post opportunity</Button></div><div className="kpi-grid four"><KpiCard label="Active opportunities" value={String(opportunities.length)} note="+3 this month" icon="briefcase" /><KpiCard label="Total applications" value="248" note="+18% vs last month" icon="file" tone="purple" /><KpiCard label="Shortlisted candidates" value="36" note="14 awaiting review" icon="users" tone="green" /><KpiCard label="Average candidate match" value="84%" note="+4.2% this month" icon="spark" tone="orange" /></div><div className="analytics-grid"><Card><SectionTitle title="Top skills in demand" subtitle="Across your active opportunities" action={<Badge tone="gray">Last 30 days</Badge>} /><MiniChart values={[88, 76, 68, 61, 56, 48]} labels={["React", "Python", "SQL", "Java", "Cloud", "AI/ML"]} color="purple" /></Card><Card className="pipeline"><SectionTitle title="Hiring pipeline" /><div className="pipeline-ring"><div><strong>248</strong><span>Applicants</span></div></div>{[["New", 86, "blue"], ["Shortlisted", 36, "purple"], ["Interview", 12, "orange"], ["Selected", 8, "green"]].map(([a, b, c]) => <p key={a}><i className={c as string} /><span>{a}</span><strong>{b}</strong></p>)}</Card></div><SectionTitle title="Recommended candidates" subtitle="AI-matched to your active opportunities" action={<button className="text-link" onClick={() => navigate("/industry/candidates")}>View all candidates <Icon name="arrow" /></button>} /><div className="candidate-grid">{[["Priya Sharma", "91", "94", ["React", "Node.js", "SQL"]], ["Alex Johnson", "82", "92", ["React", "JavaScript", "Python"]], ["Maya Patel", "88", "91", ["Python", "AI/ML", "Cloud"]]].map(c => <CandidateCard data={c as [string, string, string, string[]]} key={c[0] as string} onClick={() => navigate("/industry/candidate")} />)}</div></>;
+  const { count: shortlistedCount, isShortlisted, toggleShortlist } = useShortlistedCandidates();
+  return <>
+    <div className="welcome">
+      <div>
+        <Badge tone="purple"><Icon name="building" size={13} /> INDUSTRY WORKSPACE</Badge>
+        <h2>Welcome, TechNova Solutions</h2>
+        <p>Here’s what’s happening across your talent pipeline.</p>
+      </div>
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        <Button variant="secondary" onClick={() => exportShortlistedCandidatesToExcel()} title="Download Excel sheet of shortlisted candidates">
+          <Icon name="download" /> Download Shortlisted Excel
+        </Button>
+        <Button onClick={() => navigate("/industry/post")}><Icon name="plus" /> Post opportunity</Button>
+      </div>
+    </div>
+    <div className="kpi-grid four">
+      <KpiCard label="Active opportunities" value={String(opportunities.length)} note="+3 this month" icon="briefcase" />
+      <KpiCard label="Total applications" value="248" note="+18% vs last month" icon="file" tone="purple" />
+      <div style={{ cursor: "pointer" }} onClick={() => navigate("/industry/shortlisted")} title="Click to view shortlisted candidates">
+        <KpiCard label="Shortlisted candidates" value={String(shortlistedCount)} note="Click to view & export" icon="users" tone="green" />
+      </div>
+      <KpiCard label="Average candidate match" value="84%" note="+4.2% this month" icon="spark" tone="orange" />
+    </div>
+    <div className="analytics-grid">
+      <Card>
+        <SectionTitle title="Top skills in demand" subtitle="Across your active opportunities" action={<Badge tone="gray">Last 30 days</Badge>} />
+        <MiniChart values={[88, 76, 68, 61, 56, 48]} labels={["React", "Python", "SQL", "Java", "Cloud", "AI/ML"]} color="purple" />
+      </Card>
+      <Card className="pipeline">
+        <SectionTitle title="Hiring pipeline" />
+        <div className="pipeline-ring">
+          <div><strong>248</strong><span>Applicants</span></div>
+        </div>
+        {[["New", 86, "blue"], ["Shortlisted", shortlistedCount, "purple"], ["Interview", 12, "orange"], ["Selected", 8, "green"]].map(([a, b, c]) => (
+          <p key={a}><i className={c as string} /><span>{a}</span><strong>{b}</strong></p>
+        ))}
+      </Card>
+    </div>
+    <SectionTitle title="Recommended candidates" subtitle="AI-matched to your active opportunities" action={<button className="text-link" onClick={() => navigate("/industry/candidates")}>View all candidates <Icon name="arrow" /></button>} />
+    <div className="candidate-grid">
+      {[
+        ["Priya Sharma", "91", "94", ["React", "Node.js", "SQL"]],
+        ["Alex Johnson", "82", "92", ["React", "JavaScript", "Python"]],
+        ["Maya Patel", "88", "91", ["Python", "AI/ML", "Cloud"]],
+      ].map(c => {
+        const name = c[0] as string;
+        const candidateEmail = candidateEmailDirectory[name] || `${name.toLowerCase().replace(/\s+/g, ".")}@student.apex.edu`;
+        return (
+          <CandidateCard
+            data={c as [string, string, string, string[]]}
+            key={name}
+            email={candidateEmail}
+            isShortlisted={isShortlisted(name)}
+            onShortlistToggle={() => toggleShortlist({
+              name,
+              email: candidateEmail,
+              role: "Frontend Developer Intern",
+              college: "Apex Institute of Technology",
+              match: Number(c[2]),
+              readiness: Number(c[1]),
+              skills: c[3] as string[]
+            })}
+            onContact={() => {
+              if (onContactCandidate) {
+                onContactCandidate({
+                  name,
+                  email: candidateEmail,
+                  role: "Frontend Developer Intern",
+                  college: "Apex Institute of Technology",
+                  company: "TechNova Solutions",
+                  match: Number(c[2]),
+                  readiness: Number(c[1])
+                });
+              }
+            }}
+            onClick={() => navigate("/industry/candidate")}
+          />
+        );
+      })}
+    </div>
+  </>;
 }
 
-function CandidateCard({ data, onClick, internships = 1, softSkills = [] }: { data: [string, string, string, string[]]; onClick: () => void; internships?: number; softSkills?: string[] }) {
+function CandidateCard({
+  data,
+  onClick,
+  internships = 1,
+  softSkills = [],
+  email,
+  onContact,
+  onShortlistToggle,
+  isShortlisted = false,
+}: {
+  data: [string, string, string, string[]];
+  onClick: () => void;
+  internships?: number;
+  softSkills?: string[];
+  email?: string;
+  onContact?: () => void;
+  onShortlistToggle?: () => void;
+  isShortlisted?: boolean;
+}) {
   const [name, readiness, match, skills] = data;
-  return <Card className="candidate-card"><div className="candidate-head"><div className="candidate-avatar">{name.split(" ").map(x => x[0]).join("")}</div><div><h3>{name}</h3><p>ABC Institute of Technology</p><small>B.Tech Computer Science · 2025</small></div><Badge tone="green">{match}% match</Badge></div><div className="candidate-score"><ScoreRing score={Number(readiness)} size="small" /><div><span>Industry readiness</span><strong>{Number(readiness) >= 90 ? "Highly Ready" : "Industry Ready"}</strong><small>Verified across 5 dimensions</small></div></div><div className="tag-row">{skills.map(s => <Badge tone="gray" key={s}><Icon name="check" size={11} /> {s}</Badge>)}</div>{softSkills.length > 0 && <div className="candidate-soft-skills"><small>SOFT SKILLS</small><div className="tag-row">{softSkills.map(skill => <Badge tone="purple" key={skill}>{skill}</Badge>)}</div></div>}<div className="candidate-meta"><span><strong>4</strong> Projects</span><span><strong>3</strong> Certifications</span><span><strong>{internships}</strong> {internships === 1 ? "Internship" : "Internships"}</span></div><Button variant="secondary" className="full" onClick={onClick}>View candidate <Icon name="arrow" /></Button></Card>;
+  const candidateEmail = email || candidateEmailDirectory[name] || `${name.toLowerCase().replace(/\s+/g, ".")}@student.apex.edu`;
+  return (
+    <Card className="candidate-card">
+      <div className="candidate-head">
+        <div className="candidate-avatar">{name.split(" ").map(x => x[0]).join("")}</div>
+        <div>
+          <h3>{name}</h3>
+          <p>ABC Institute of Technology</p>
+          <small style={{ color: "#475569" }}>✉️ {candidateEmail}</small>
+        </div>
+        <Badge tone="green">{match}% match</Badge>
+      </div>
+      <div className="candidate-score">
+        <ScoreRing score={Number(readiness)} size="small" />
+        <div>
+          <span>Industry readiness</span>
+          <strong>{Number(readiness) >= 90 ? "Highly Ready" : "Industry Ready"}</strong>
+          <small>Verified across 5 dimensions</small>
+        </div>
+      </div>
+      <div className="tag-row">
+        {skills.map(s => <Badge tone="gray" key={s}><Icon name="check" size={11} /> {s}</Badge>)}
+      </div>
+      {softSkills.length > 0 && (
+        <div className="candidate-soft-skills">
+          <small>SOFT SKILLS</small>
+          <div className="tag-row">{softSkills.map(skill => <Badge tone="purple" key={skill}>{skill}</Badge>)}</div>
+        </div>
+      )}
+      <div className="candidate-meta">
+        <span><strong>4</strong> Projects</span>
+        <span><strong>3</strong> Certifications</span>
+        <span><strong>{internships}</strong> {internships === 1 ? "Internship" : "Internships"}</span>
+      </div>
+      <div style={{ display: "flex", gap: "6px", marginTop: "10px", flexWrap: "wrap" }}>
+        <Button variant="secondary" style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }} onClick={onClick}>
+          View <Icon name="arrow" />
+        </Button>
+        {onShortlistToggle && (
+          <Button
+            variant="secondary"
+            style={{ padding: "7px 10px", fontSize: "11px", background: isShortlisted ? "#e0e7ff" : undefined }}
+            onClick={onShortlistToggle}
+            title={isShortlisted ? "Remove from shortlist" : "Add to shortlist"}
+          >
+            {isShortlisted ? <><Icon name="check" size={12} /> Shortlisted</> : "+ Shortlist"}
+          </Button>
+        )}
+        {onContact && (
+          <Button
+            variant="primary"
+            style={{ padding: "7px 10px", fontSize: "11px", background: "linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)", color: "#ffffff" }}
+            onClick={onContact}
+            title="Directly redirect to email and send employment recruitment offer to shaikanas20055@gmail"
+          >
+            <Icon name="mail" size={12} /> Contact
+          </Button>
+        )}
+      </div>
+    </Card>
+  );
 }
 
-function CandidateSearch({ navigate }: { navigate: (p: string) => void }) {
+function CandidateSearch({ navigate, onContactCandidate }: { navigate: (p: string) => void; onContactCandidate?: (c: any) => void }) {
+  const { isShortlisted, toggleShortlist } = useShortlistedCandidates();
   const emptyFilters: CandidateFilters = { skills: [], softSkills: [], experience: "", minimumReadiness: 0 };
   const [filters, setFilters] = useState<CandidateFilters>(emptyFilters);
   const [appliedFilters, setAppliedFilters] = useState<CandidateFilters>(emptyFilters);
@@ -1419,7 +1762,18 @@ function CandidateSearch({ navigate }: { navigate: (p: string) => void }) {
   const filtered = filterCandidates(appliedFilters).sort((a, b) => sort === "readiness" ? b.readiness - a.readiness : sort === "experience" ? b.internships - a.internships : b.match - a.match);
   const clear = () => { setFilters(emptyFilters); setAppliedFilters(emptyFilters); };
   return <>
-    <div className="welcome"><div><h2>Discover proven talent</h2><p>Select technical skills, soft skills and experience to find suitable candidates.</p></div><Badge tone="purple"><Icon name="spark" size={13} /> Evidence-based discovery</Badge></div>
+    <div className="welcome">
+      <div>
+        <h2>Discover proven talent</h2>
+        <p>Select technical skills, soft skills and experience to find suitable candidates.</p>
+      </div>
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+        <Button variant="secondary" onClick={() => exportShortlistedCandidatesToExcel()} title="Download Excel spreadsheet of shortlisted candidates with names & email IDs">
+          <Icon name="download" /> Download Shortlisted Excel
+        </Button>
+        <Badge tone="purple"><Icon name="spark" size={13} /> Evidence-based discovery</Badge>
+      </div>
+    </div>
     <form className="card candidate-filter-panel" onSubmit={event => { event.preventDefault(); setAppliedFilters(filters); }}>
       <div className="candidate-filter-fields">
         <label>Technical skills<select value="" onChange={event => { const value = event.target.value; if (value) setFilters({ ...filters, skills: [...filters.skills, value] }); }}>
@@ -1440,26 +1794,50 @@ function CandidateSearch({ navigate }: { navigate: (p: string) => void }) {
       <div className="candidate-filter-footer"><p>Candidates must match all selected skills. Experience is based on completed internships.</p><div><Button variant="secondary" onClick={clear}>Clear filters</Button><Button type="submit"><Icon name="search" /> Search candidates</Button></div></div>
     </form>
     <div className="results-head"><span role="status">{filtered.length} {filtered.length === 1 ? "candidate" : "candidates"} found · Demo talent pool</span><select aria-label="Sort candidates" value={sort} onChange={event => setSort(event.target.value)}><option value="match">Best match first</option><option value="readiness">Highest readiness first</option><option value="experience">Most experience first</option></select></div>
-    {filtered.length ? <div className="candidate-grid">{filtered.map(candidate => <CandidateCard data={[candidate.name, String(candidate.readiness), String(candidate.match), candidate.skills]} internships={candidate.internships} softSkills={candidate.softSkills} key={candidate.name} onClick={() => navigate("/industry/candidate")} />)}</div> :
+    {filtered.length ? <div className="candidate-grid">{filtered.map(candidate => <CandidateCard data={[candidate.name, String(candidate.readiness), String(candidate.match), candidate.skills]} internships={candidate.internships} softSkills={candidate.softSkills} email={candidate.email} isShortlisted={isShortlisted(candidate.name)} onShortlistToggle={() => toggleShortlist({ name: candidate.name, email: candidate.email, role: candidate.role || "Frontend Developer Intern", college: candidate.college || "Apex Institute of Technology", match: candidate.match, readiness: candidate.readiness, skills: candidate.skills })} onContact={() => { if (onContactCandidate) onContactCandidate({ name: candidate.name, email: candidate.email, role: candidate.role || "Frontend Developer Intern", college: candidate.college || "Apex Institute of Technology", match: candidate.match, readiness: candidate.readiness }); }} key={candidate.name} onClick={() => navigate("/industry/candidate")} />)}</div> :
       <Card className="empty-opportunities"><Icon name="users" size={30} /><h3>No candidates match these selections</h3><p>Remove a skill or choose a broader experience range to see more candidates.</p><Button variant="secondary" onClick={clear}>Reset filters</Button></Card>}
   </>;
 }
 
-function CandidateProfile() {
-  const [shortlisted, setShortlisted] = useState(false);
+function CandidateProfile({ onContactCandidate }: { onContactCandidate?: (c: any) => void }) {
+  const { isShortlisted, toggleShortlist } = useShortlistedCandidates();
   const [resumeOpen, setResumeOpen] = useState(false);
   const allProjects = useProjects();
   const candidateProjects = allProjects.filter(p => p.studentName === "Alex Johnson" || !p.studentName);
+  const candidateEmail = "alex.johnson@student.apex.edu";
+  const shortlisted = isShortlisted("Alex Johnson");
 
-  return <><div className="candidate-profile-head"><button className="back-button"><Icon name="arrow" /> Back to candidates</button><div className="candidate-profile-main"><div className="candidate-avatar large">AJ<span><Icon name="check" /></span></div><div><div><h2>Alex Johnson</h2><Badge tone="green">Open to opportunities</Badge></div><p>B.Tech Computer Science · ABC Institute of Technology</p><small>Graduating 2025 · Bengaluru, India</small></div><div className="profile-actions"><Button variant="secondary">Contact candidate</Button><Button onClick={() => setShortlisted(true)}>{shortlisted ? <><Icon name="check" /> Shortlisted</> : <>Shortlist candidate <Icon name="plus" /></>}</Button></div></div></div><div className="candidate-profile-grid"><div><Card className="match-card"><ScoreRing score={92} size="small" /><div><span className="eyebrow">MATCH FOR FRONTEND INTERN</span><h3>Excellent candidate match</h3><p>Alex strongly matches your role through verified React skills, relevant projects and a high assessment score.</p></div></Card><SectionTitle title="Verified skill evidence" subtitle="Capability backed by multiple sources" /><div className="evidence-list"><SkillEvidence name="React" level="Advanced" score={91} projects={3} /><SkillEvidence name="JavaScript" level="Advanced" score={88} projects={4} /><SkillEvidence name="Node.js" level="Intermediate" score={83} projects={2} /></div><SectionTitle title="Student portfolio projects" subtitle="Projects completed by candidate" /><div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>{candidateProjects.map(proj => <Card className="simple-project" key={proj.id}><div className={`icon-tile ${proj.status === "verified" ? "green" : "purple"}`}><Icon name={proj.status === "verified" ? "check" : "spark"} /></div><div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><h3 style={{ margin: 0 }}>{proj.title}</h3><Badge tone={proj.status === "verified" ? "green" : "orange"}>{proj.status === "verified" ? "College Verified" : "Student Submitted"}</Badge></div><p style={{ margin: "0.25rem 0", color: "#64748b", fontSize: "0.85rem" }}>{proj.detail}</p><div className="tag-row">{proj.tags.map(x => <Badge tone="gray" key={x}>{x}</Badge>)}</div>{proj.githubUrl && <small style={{ display: "block", marginTop: "0.25rem", color: "#0284c7" }}>Repository: {proj.githubUrl}</small>}{proj.fileName && <small style={{ display: "block", color: "#64748b" }}>Attachment: {proj.fileName}</small>}</div></Card>)}</div></div><div><Card className="readiness-side"><span className="eyebrow">INDUSTRY READINESS</span><ScoreRing score={82} /><Badge tone="green">Industry Ready</Badge>{[["Required skills", 86], ["Projects", 78], ["Assessments", 88], ["Skill evidence", 84], ["Professional skills", 82]].map(([x, y]) => <div className="mini-progress" key={x}><span>{x}<b>{y}%</b></span><Progress value={y as number} /></div>)}</Card><Card className="why-card"><span className="eyebrow">AI MATCH EXPLANATION</span><h3>Why this candidate matches</h3>{["Strong React and JavaScript skills", `${candidateProjects.length} completed projects with verified evidence`, "High assessment scores", "Relevant internship experience"].map(x => <p key={x}><Icon name="check" /> {x}</p>)}<p className="caution"><Icon name="chart" /> Limited production testing experience</p></Card><Card><SectionTitle title="Resume" /><div className="resume-download"><Icon name="file" /><div><strong>Alex_Johnson_Resume.pdf</strong><small>Updated 2 days ago · Verified</small></div><div style={{ display: "flex", gap: "6px" }}><Button variant="ghost" onClick={() => setResumeOpen(true)}>Preview</Button><Button variant="secondary" onClick={() => downloadStudentResume("Alex Johnson")}>Download</Button></div></div></Card></div></div>{resumeOpen && <ResumeViewerModal candidateName="Alex Johnson" resumeFileName="Alex_Johnson_Resume.pdf" score={88} close={() => setResumeOpen(false)} />}</>;
+  return <><div className="candidate-profile-head"><button className="back-button" onClick={() => window.history.back()}><Icon name="arrow" /> Back to candidates</button><div className="candidate-profile-main"><div className="candidate-avatar large">AJ<span><Icon name="check" /></span></div><div><div><h2>Alex Johnson</h2><Badge tone="green">Open to opportunities</Badge></div><p>B.Tech Computer Science · ABC Institute of Technology</p><small>Graduating 2025 · Bengaluru, India · ✉️ {candidateEmail}</small></div><div className="profile-actions"><Button variant="primary" style={{ background: "linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)", color: "#ffffff" }} onClick={() => {
+    if (onContactCandidate) {
+      onContactCandidate({
+        name: "Alex Johnson",
+        email: candidateEmail,
+        role: "Frontend Developer Intern",
+        college: "ABC Institute of Technology",
+        company: "TechNova Solutions",
+        match: 92,
+        readiness: 84
+      });
+    }
+  }}><Icon name="mail" /> Contact candidate</Button><Button variant="secondary" onClick={() => {
+    toggleShortlist({
+      name: "Alex Johnson",
+      email: candidateEmail,
+      role: "Frontend Developer Intern",
+      college: "ABC Institute of Technology",
+      match: 92,
+      readiness: 84
+    });
+  }}>{shortlisted ? <><Icon name="check" /> Shortlisted</> : <>Shortlist candidate <Icon name="plus" /></>}</Button></div></div></div><div className="candidate-profile-grid"><div><Card className="match-card"><ScoreRing score={92} size="small" /><div><span className="eyebrow">MATCH FOR FRONTEND INTERN</span><h3>Excellent candidate match</h3><p>Alex strongly matches your role through verified React skills, relevant projects and a high assessment score.</p></div></Card><SectionTitle title="Verified skill evidence" subtitle="Capability backed by multiple sources" /><div className="evidence-list"><SkillEvidence name="React" level="Advanced" score={91} projects={3} /><SkillEvidence name="JavaScript" level="Advanced" score={88} projects={4} /><SkillEvidence name="Node.js" level="Intermediate" score={83} projects={2} /></div><SectionTitle title="Student portfolio projects" subtitle="Projects completed by candidate" /><div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>{candidateProjects.map(proj => <Card className="simple-project" key={proj.id}><div className={`icon-tile ${proj.status === "verified" ? "green" : "purple"}`}><Icon name={proj.status === "verified" ? "check" : "spark"} /></div><div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><h3 style={{ margin: 0 }}>{proj.title}</h3><Badge tone={proj.status === "verified" ? "green" : "orange"}>{proj.status === "verified" ? "College Verified" : "Student Submitted"}</Badge></div><p style={{ margin: "0.25rem 0", color: "#64748b", fontSize: "0.85rem" }}>{proj.detail}</p><div className="tag-row">{proj.tags.map(x => <Badge tone="gray" key={x}>{x}</Badge>)}</div>{proj.githubUrl && <small style={{ display: "block", marginTop: "0.25rem", color: "#0284c7" }}>Repository: {proj.githubUrl}</small>}{proj.fileName && <small style={{ display: "block", color: "#64748b" }}>Attachment: {proj.fileName}</small>}</div></Card>)}</div></div><div><Card className="readiness-side"><span className="eyebrow">INDUSTRY READINESS</span><ScoreRing score={82} /><Badge tone="green">Industry Ready</Badge>{[["Required skills", 86], ["Projects", 78], ["Assessments", 88], ["Skill evidence", 84], ["Professional skills", 82]].map(([x, y]) => <div className="mini-progress" key={x}><span>{x}<b>{y}%</b></span><Progress value={y as number} /></div>)}</Card><Card className="why-card"><span className="eyebrow">AI MATCH EXPLANATION</span><h3>Why this candidate matches</h3>{["Strong React and JavaScript skills", `${candidateProjects.length} completed projects with verified evidence`, "High assessment scores", "Relevant internship experience"].map(x => <p key={x}><Icon name="check" /> {x}</p>)}<p className="caution"><Icon name="chart" /> Limited production testing experience</p></Card><Card><SectionTitle title="Resume" /><div className="resume-download"><Icon name="file" /><div><strong>Alex_Johnson_Resume.pdf</strong><small>Updated 2 days ago · Verified</small></div><div style={{ display: "flex", gap: "6px" }}><Button variant="ghost" onClick={() => setResumeOpen(true)}>Preview</Button><Button variant="secondary" onClick={() => downloadStudentResume("Alex Johnson")}>Download</Button></div></div></Card></div></div>{resumeOpen && <ResumeViewerModal candidateName="Alex Johnson" resumeFileName="Alex_Johnson_Resume.pdf" score={88} close={() => setResumeOpen(false)} />}</>;
 }
 
 function IndustryAnalytics() {
   return <><div className="welcome"><div><Badge tone="purple"><Icon name="spark" size={13} /> AI DEMAND INTELLIGENCE</Badge><h2>Skill demand analytics</h2><p>Understand market shifts and find where talent supply falls short.</p></div><Button variant="secondary">Export report</Button></div><div className="kpi-grid"><KpiCard label="Skills tracked" value="48" note="Across 12 roles" icon="spark" /><KpiCard label="Fastest growing" value="AI/ML" note="+38% in 6 months" icon="chart" tone="purple" /><KpiCard label="Largest talent gap" value="Cloud" note="21% supply deficit" icon="users" tone="orange" /></div><div className="analytics-grid"><Card><SectionTitle title="Most in-demand skills" subtitle="Based on active roles and application data" /><MiniChart values={[91, 84, 78, 69, 62, 55]} labels={["AI/ML", "React", "Python", "Cloud", "Analytics", "Cyber"]} color="purple" /></Card><Card><SectionTitle title="Skill growth trends" subtitle="Demand index · Last 6 months" /><div className="line-chart"><svg viewBox="0 0 500 180" preserveAspectRatio="none"><defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6d5dfc" stopOpacity=".3" /><stop offset="1" stopColor="#6d5dfc" stopOpacity="0" /></linearGradient></defs><path d="M0 145 C70 125 85 130 145 100 S230 110 285 65 S390 85 500 20 L500 180 L0 180Z" fill="url(#area)" /><path d="M0 145 C70 125 85 130 145 100 S230 110 285 65 S390 85 500 20" fill="none" stroke="#6d5dfc" strokeWidth="4" /></svg><div>{["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map(x => <span key={x}>{x}</span>)}</div></div></Card></div><Card className="supply-card"><SectionTitle title="Industry demand vs student supply" subtitle="Where the biggest opportunities exist" action={<Badge tone="orange">Average gap 14%</Badge>} /><div className="supply-head"><span>Skill</span><span>Demand</span><span>Student supply</span><span>Talent gap</span></div>{[["React", 82, 68, 14], ["Python", 75, 61, 14], ["Cloud", 72, 51, 21], ["AI / ML", 86, 59, 27], ["Data Analytics", 68, 62, 6]].map(([x, d, s, g]) => <div className="supply-row" key={x as string}><strong>{x}</strong><div><Progress value={d as number} /></div><div><Progress value={s as number} tone="green" /></div><Badge tone={g as number > 20 ? "red" : g as number > 10 ? "orange" : "green"}>{g}% gap</Badge></div>)}</Card></>;
 }
 
-function MatchedStudents({ navigate }: { navigate: (p: string) => void }) {
+function MatchedStudents({ navigate, onContactCandidate }: { navigate: (p: string) => void; onContactCandidate?: (cand: any) => void }) {
   const opportunities = useOpportunities();
+  const { isShortlisted: checkIsShortlisted, toggleShortlist } = useShortlistedCandidates();
   const [selectedOppId, setSelectedOppId] = useState<string>(() => {
     return localStorage.getItem("skillimprove-selected-opportunity") || opportunities[0]?.id || "opp-1";
   });
@@ -1593,7 +1971,14 @@ function MatchedStudents({ navigate }: { navigate: (p: string) => void }) {
           <h2>Matched Students for Opportunity</h2>
           <p>Candidates dynamically ranked and scored against your active opportunity requirements with verified evidence and resumes.</p>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+          <Button
+            variant="secondary"
+            onClick={() => exportShortlistedCandidatesToExcel()}
+            title="Download Excel spreadsheet of shortlisted candidates with names & email IDs"
+          >
+            <Icon name="download" /> Download Shortlisted Excel
+          </Button>
           <Button variant="secondary" onClick={() => navigate("/industry/opportunities")}><Icon name="arrow" /> Back to opportunities</Button>
           <Button onClick={() => navigate("/industry/post")}><Icon name="plus" /> Post new role</Button>
         </div>
@@ -1674,7 +2059,8 @@ function MatchedStudents({ navigate }: { navigate: (p: string) => void }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         {matched.map(student => {
-          const isShortlisted = shortlistedMap[student.name];
+          const studentEmail = candidateEmailDirectory[student.name] || `${student.name.toLowerCase().replace(/\s+/g, ".")}@student.apex.edu`;
+          const isCandidateSaved = shortlistedMap[student.name] !== undefined ? shortlistedMap[student.name] : checkIsShortlisted(student.name);
           const isInvited = invitedMap[student.name];
           return (
             <Card className="matched-student-card" key={student.name}>
@@ -1684,12 +2070,14 @@ function MatchedStudents({ navigate }: { navigate: (p: string) => void }) {
                     {student.name.split(" ").map(w => w[0]).join("")}
                   </div>
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                       <h3 style={{ margin: 0, fontSize: "17px" }}>{student.name}</h3>
                       <Badge tone="green">Verified Student</Badge>
                     </div>
                     <p style={{ margin: "2px 0", fontSize: "12px", color: "var(--muted)" }}>{student.degree} · {student.college}</p>
-                    <small style={{ color: "#64748b" }}>Location: {student.location} · {student.internships} completed internship</small>
+                    <small style={{ color: "#475569", display: "block" }}>
+                      ✉️ {studentEmail} · Location: {student.location} · {student.internships} completed internship
+                    </small>
                   </div>
                 </div>
 
@@ -1768,16 +2156,49 @@ function MatchedStudents({ navigate }: { navigate: (p: string) => void }) {
                   </button>
                 </div>
 
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                   <Button
                     variant="secondary"
+                    style={{ background: isCandidateSaved ? "#e0e7ff" : undefined }}
                     onClick={() => {
-                      setShortlistedMap(prev => ({ ...prev, [student.name]: !isShortlisted }));
-                      setNotice(!isShortlisted ? `${student.name} shortlisted for ${currentOpp.title}.` : `${student.name} removed from shortlists.`);
+                      const nowSaved = toggleShortlist({
+                        name: student.name,
+                        email: studentEmail,
+                        role: currentOpp.title,
+                        company: currentOpp.company,
+                        college: student.college,
+                        match: student.baseMatch,
+                        readiness: student.readiness,
+                        skills: student.skills,
+                        resumeFileName: student.resumeFileName,
+                      });
+                      setShortlistedMap(prev => ({ ...prev, [student.name]: nowSaved }));
+                      setNotice(nowSaved ? `✅ ${student.name} added to Shortlist. Candidate name and email recorded in Excel roster.` : `${student.name} removed from shortlist.`);
                     }}
+                    title={isCandidateSaved ? "Remove from shortlist" : "Add candidate to shortlist and Excel roster"}
                   >
-                    {isShortlisted ? <><Icon name="check" /> Shortlisted</> : "Shortlist"}
+                    {isCandidateSaved ? <><Icon name="check" size={12} /> Shortlisted</> : <>+ Shortlist</>}
                   </Button>
+                  {onContactCandidate && (
+                    <Button
+                      variant="primary"
+                      style={{ background: "linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)", color: "#ffffff" }}
+                      onClick={() => {
+                        onContactCandidate({
+                          name: student.name,
+                          email: studentEmail,
+                          role: currentOpp.title,
+                          company: currentOpp.company,
+                          college: student.college,
+                          match: student.baseMatch,
+                          readiness: student.readiness,
+                        });
+                      }}
+                      title="Directly redirect to email and send employment recruitment offer to shaikanas20055@gmail"
+                    >
+                      <Icon name="mail" size={13} /> Contact (Offer)
+                    </Button>
+                  )}
                   <Button
                     variant="secondary"
                     onClick={() => {
