@@ -1,0 +1,10 @@
+{
+  "description": "Connects students, industry, and colleges to assess skills, identify gaps, recommend learning, and match talent with verified evidence for career readiness.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
