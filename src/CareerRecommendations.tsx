@@ -380,12 +380,20 @@ export default function CareerRecommendations({ initialRoleQuery = "Data Analyst
       </section>
 
       {/* ========================================================
-          3. JOB ROLE REQUIREMENTS SECTION
+          3. JOB ROLE REQUIREMENTS SECTION (JOB SPECIFICATION)
           ======================================================== */}
-      <section className="role-requirements-section card">
+      <section className="role-requirements-section card job-specification-section">
         <div className="section-head-with-badge">
           <div>
-            <span className="eyebrow">JOB SPECIFICATION</span>
+            <span className="eyebrow job-spec-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ display: "inline-block", verticalAlign: "middle" }}>
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              JOB SPECIFICATION
+            </span>
             <h3>Required Skills for {currentRoleData.title}</h3>
             <p>Industry-benchmarked technical and practical requirements compiled from active employers.</p>
           </div>
@@ -396,7 +404,7 @@ export default function CareerRecommendations({ initialRoleQuery = "Data Analyst
           {currentRoleData.requiredSkills.map(req => {
             const importanceTone = req.importance === "Critical" ? "red" : req.importance === "High" ? "purple" : "blue";
             return (
-              <div key={req.name} className="skill-req-card">
+              <div key={req.name} className="skill-req-card job-spec-card">
                 <div className="skill-req-head">
                   <div className="skill-req-icon-box">
                     {req.name.slice(0, 2).toUpperCase()}

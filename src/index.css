@@ -771,6 +771,15 @@ footer { height: 100px; padding: 0 max(24px, calc((100vw - 1180px)/2)); display:
   background: radial-gradient(circle at 10% 20%, rgba(49, 89, 220, 0.05), transparent 30%),
               radial-gradient(circle at 95% 80%, rgba(109, 93, 252, 0.06), transparent 40%),
               white;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease;
+}
+
+.target-career-banner:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 18px 45px -8px rgba(99, 102, 241, 0.22),
+              0 0 32px rgba(109, 93, 252, 0.16);
 }
 
 .target-career-meta {
@@ -875,9 +884,21 @@ footer { height: 100px; padding: 0 max(24px, calc((100vw - 1180px)/2)); display:
   flex: 1;
 }
 
-/* Role Requirements Section */
-.role-requirements-section {
+/* Role Requirements & Job Specification Section */
+.role-requirements-section,
+.job-specification-section {
   padding: 26px 30px;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease;
+}
+
+.role-requirements-section:hover,
+.job-specification-section:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 20px 50px -10px rgba(99, 102, 241, 0.24),
+              0 0 35px 2px rgba(129, 140, 248, 0.18);
 }
 
 .section-head-with-badge {
@@ -900,24 +921,88 @@ footer { height: 100px; padding: 0 max(24px, calc((100vw - 1180px)/2)); display:
   font-size: 13px;
 }
 
+/* Job Specification Badge Pill with Neon Shadow Glow */
+.job-spec-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #4f46e5;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+}
+
+.job-spec-badge:hover {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.7);
+  color: #3730a3;
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 0 25px 4px rgba(99, 102, 241, 0.5),
+              0 6px 18px rgba(79, 70, 229, 0.32);
+}
+
 .skills-requirement-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 14px;
 }
 
-.skill-req-card {
+.skill-req-card,
+.job-spec-card {
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #fafbfe;
-  transition: all 0.2s;
+  position: relative;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.25s ease,
+              background 0.25s ease;
+  overflow: hidden;
 }
 
-.skill-req-card:hover {
-  background: white;
-  border-color: #cbd5e1;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+.skill-req-card::after,
+.job-spec-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.skill-req-card:hover,
+.job-spec-card:hover {
+  background: #ffffff;
+  border-color: rgba(99, 102, 241, 0.65);
+  transform: translateY(-4px) scale(1.015);
+  box-shadow: 0 16px 36px -6px rgba(99, 102, 241, 0.35),
+              0 0 28px 2px rgba(109, 93, 252, 0.3),
+              0 0 0 1px rgba(99, 102, 241, 0.25);
+}
+
+.skill-req-card:hover::after,
+.job-spec-card:hover::after {
+  opacity: 1;
+}
+
+.skill-req-card:hover .skill-req-icon-box,
+.job-spec-card:hover .skill-req-icon-box {
+  background: linear-gradient(135deg, #3159dc, #6d5dfc);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+  transform: scale(1.08);
 }
 
 .skill-req-head {
