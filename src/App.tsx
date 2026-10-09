@@ -2076,9 +2076,108 @@ function KpiCard({ label, value, note, icon, tone = "blue" }: { label: string; v
   return <Card className="kpi-card"><div className={`icon-tile ${tone}`}><Icon name={icon} /></div><div><span>{label}</span><strong>{value}</strong><small>{note}</small></div></Card>;
 }
 
+const industryTopSkillsData = [
+  { skill: "React", demand: 88, openings: 142, growth: "+14%" },
+  { skill: "Python", demand: 76, openings: 118, growth: "+9%" },
+  { skill: "SQL", demand: 68, openings: 96, growth: "+12%" },
+  { skill: "Java", demand: 61, openings: 84, growth: "+5%" },
+  { skill: "Cloud", demand: 56, openings: 72, growth: "+18%" },
+  { skill: "AI / ML", demand: 48, openings: 64, growth: "+26%" },
+];
+
+function CustomIndustrySkillsTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#ffffff",
+          padding: "9px 13px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          minWidth: "150px",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#a5b4fc", fontSize: "12px", marginBottom: "4px" }}>
+          {data.skill}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", margin: "2px 0" }}>
+          <span style={{ color: "#94a3b8" }}>Demand Index:</span>
+          <span style={{ fontWeight: 700, color: "#38bdf8" }}>{data.demand}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", margin: "2px 0" }}>
+          <span style={{ color: "#94a3b8" }}>Open Roles:</span>
+          <span style={{ fontWeight: 700, color: "#f8fafc" }}>{data.openings} positions</span>
+        </div>
+        <div
+          style={{
+            marginTop: "4px",
+            paddingTop: "4px",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            display: "flex",
+            justifyContent: "space-between",
+            color: "#4ade80",
+            fontWeight: 700,
+          }}
+        >
+          <span>MoM Growth:</span>
+          <span>{data.growth}</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomHiringPipelineTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    const total = 248;
+    const pct = Math.round((Number(data.value) / total) * 100);
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#ffffff",
+          padding: "8px 12px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          minWidth: "140px",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "3px" }}>
+          Stage: {data.name}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", margin: "2px 0" }}>
+          <span style={{ color: "#94a3b8" }}>Candidates:</span>
+          <span style={{ fontWeight: 700, color: "#38bdf8" }}>{data.value}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", margin: "2px 0" }}>
+          <span style={{ color: "#94a3b8" }}>Pipeline Share:</span>
+          <span style={{ fontWeight: 700, color: "#4ade80" }}>{pct}%</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 function IndustryDashboard({ navigate, onContactCandidate }: { navigate: (p: string) => void; onContactCandidate?: (c: any) => void }) {
   const opportunities = useOpportunities();
   const { count: shortlistedCount, isShortlisted, toggleShortlist } = useShortlistedCandidates();
+
+  const pipelineChartData = [
+    { name: "New", value: 86, color: "#3b82f6" },
+    { name: "Shortlisted", value: Math.max(shortlistedCount, 42), color: "#8b5cf6" },
+    { name: "Interview", value: 18, color: "#f59e0b" },
+    { name: "Selected", value: 12, color: "#10b981" },
+  ];
+
   return <>
     <div className="welcome">
       <div>
@@ -2102,18 +2201,117 @@ function IndustryDashboard({ navigate, onContactCandidate }: { navigate: (p: str
       <KpiCard label="Average candidate match" value="84%" note="+4.2% this month" icon="spark" tone="orange" />
     </div>
     <div className="analytics-grid">
-      <Card>
-        <SectionTitle title="Top skills in demand" subtitle="Across your active opportunities" action={<Badge tone="gray">Last 30 days</Badge>} />
-        <MiniChart values={[88, 76, 68, 61, 56, 48]} labels={["React", "Python", "SQL", "Java", "Cloud", "AI/ML"]} color="purple" />
-      </Card>
-      <Card className="pipeline">
-        <SectionTitle title="Hiring pipeline" />
-        <div className="pipeline-ring">
-          <div><strong>248</strong><span>Applicants</span></div>
+      <Card style={{ padding: "18px 20px" }}>
+        <SectionTitle
+          title="Top skills in demand"
+          subtitle="Across your active opportunities"
+          action={<Badge tone="purple">Last 30 days</Badge>}
+        />
+        <div style={{ width: "100%", height: 210, marginTop: "6px" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={industryTopSkillsData} margin={{ top: 12, right: 10, left: -22, bottom: 0 }}>
+              <defs>
+                <linearGradient id="industryTopSkillsGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity={0.85} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis
+                dataKey="skill"
+                tick={{ fill: "#475569", fontSize: 11, fontWeight: 600 }}
+                axisLine={{ stroke: "#e2e8f0" }}
+                tickLine={false}
+              />
+              <YAxis domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomIndustrySkillsTooltip />} />
+              <Bar
+                dataKey="demand"
+                name="Demand Index (%)"
+                fill="url(#industryTopSkillsGrad)"
+                radius={[5, 5, 0, 0]}
+                maxBarSize={28}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-        {[["New", 86, "blue"], ["Shortlisted", shortlistedCount, "purple"], ["Interview", 12, "orange"], ["Selected", 8, "green"]].map(([a, b, c]) => (
-          <p key={a}><i className={c as string} /><span>{a}</span><strong>{b}</strong></p>
-        ))}
+      </Card>
+
+      <Card style={{ padding: "18px 20px" }}>
+        <SectionTitle
+          title="Hiring pipeline"
+          subtitle="Candidate stage distribution"
+          action={<Badge tone="blue">248 Total</Badge>}
+        />
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "10px" }}>
+          {/* Recharts Donut PieChart */}
+          <div style={{ position: "relative", width: 135, height: 135, flex: "none", display: "grid", placeItems: "center" }}>
+            <ResponsiveContainer width={135} height={135}>
+              <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <Pie
+                  data={pipelineChartData}
+                  dataKey="value"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={42}
+                  outerRadius={60}
+                  paddingAngle={3}
+                  stroke="none"
+                >
+                  {pipelineChartData.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomHiringPipelineTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                textAlign: "center",
+                pointerEvents: "none",
+              }}
+            >
+              <strong style={{ fontSize: "20px", fontWeight: 800, color: "#1e293b", display: "block", lineHeight: 1 }}>
+                248
+              </strong>
+              <span style={{ fontSize: "9px", color: "#64748b", fontWeight: 600 }}>Applicants</span>
+            </div>
+          </div>
+
+          {/* Stage Breakdown Badges */}
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
+            {pipelineChartData.map((item) => {
+              const pct = Math.round((item.value / 248) * 100);
+              return (
+                <div
+                  key={item.name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "5px 8px",
+                    borderRadius: "6px",
+                    background: "#f8fafc",
+                    border: "1px solid #f1f5f9",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: item.color, flex: "none" }} />
+                    <span style={{ fontSize: "11px", color: "#475569", fontWeight: 500 }}>{item.name}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <strong style={{ fontSize: "11px", color: "#1e293b" }}>{item.value}</strong>
+                    <span style={{ fontSize: "9px", color: "#94a3b8", fontWeight: 600 }}>({pct}%)</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </Card>
     </div>
     <SectionTitle title="Recommended candidates" subtitle="AI-matched to your active opportunities" action={<button className="text-link" onClick={() => navigate("/industry/candidates")}>View all candidates <Icon name="arrow" /></button>} />
