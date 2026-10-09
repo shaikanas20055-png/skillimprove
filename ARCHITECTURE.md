@@ -6,6 +6,8 @@ This document details the high-level and component architecture of the **SkillIm
 
 ## 1. High-Level System Architecture
 
+![SkillImprove System Architecture Diagram](./public/system_architecture.jpg)
+
 SkillImprove is structured as a decoupled, multi-tier system composed of a modern reactive frontend Single Page Application (SPA), a serverless API layer powered by Next.js route handlers, an AI engine utilizing Google Gemini 2.5 Flash, and a flexible persistence tier managed via Prisma ORM.
 
 ```mermaid
