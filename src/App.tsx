@@ -5,6 +5,15 @@ import {
   Bar,
   AreaChart,
   Area,
+  PieChart,
+  Pie,
+  Cell,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ReferenceLine,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -871,15 +880,482 @@ function useTimeGreeting() {
   return greeting;
 }
 
+const studentReadinessGaugeData = [
+  { name: "Current Score", value: 82 },
+  { name: "Points to 100", value: 18 },
+];
+
+const studentReadinessBreakdownData = [
+  { name: "Technical Skills", short: "Tech", score: 86, target: 80 },
+  { name: "Assessments", short: "Assess", score: 88, target: 80 },
+  { name: "Professional Skills", short: "Soft", score: 82, target: 80 },
+  { name: "Projects", short: "Projects", score: 78, target: 80 },
+  { name: "Certifications", short: "Certs", score: 75, target: 80 },
+];
+
+const studentPriorityGapsData = [
+  {
+    skill: "React",
+    current: 62,
+    target: 85,
+    gap: 23,
+    currentLevel: "Intermediate",
+    targetLevel: "Advanced",
+  },
+  {
+    skill: "SQL",
+    current: 45,
+    target: 78,
+    gap: 33,
+    currentLevel: "Beginner",
+    targetLevel: "Intermediate",
+  },
+  {
+    skill: "Communication",
+    current: 60,
+    target: 84,
+    gap: 24,
+    currentLevel: "Intermediate",
+    targetLevel: "Advanced",
+  },
+];
+
+function CustomReadinessGaugeTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#ffffff",
+          padding: "8px 12px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+          border: "1px solid rgba(255,255,255,0.12)",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "2px" }}>
+          Industry Readiness Score
+        </div>
+        <div style={{ fontSize: "12px", fontWeight: 800 }}>
+          {data.name}: {data.value}%
+        </div>
+        <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "2px" }}>
+          Target: 80% · Top 15% of cohort
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomReadinessBarTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const diff = data.score - data.target;
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#ffffff",
+          padding: "8px 12px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+          border: "1px solid rgba(255,255,255,0.12)",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "4px" }}>
+          {data.name}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", marginBottom: "2px" }}>
+          <span style={{ color: "#94a3b8" }}>Current Score:</span>
+          <span style={{ fontWeight: 700, color: "#38bdf8" }}>{data.score}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", marginBottom: "3px" }}>
+          <span style={{ color: "#94a3b8" }}>Benchmark Target:</span>
+          <span style={{ fontWeight: 700, color: "#e2e8f0" }}>{data.target}%</span>
+        </div>
+        <div style={{ fontSize: "10px", color: diff >= 0 ? "#4ade80" : "#fbbf24", fontWeight: 600 }}>
+          {diff >= 0 ? `+${diff}% Above Benchmark` : `${diff}% To Target`}
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomReadinessRadarTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#ffffff",
+          padding: "8px 12px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+          border: "1px solid rgba(255,255,255,0.12)",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "3px" }}>
+          {data.name}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginBottom: "2px" }}>
+          <span style={{ color: "#818cf8" }}>Alex's Score:</span>
+          <span style={{ fontWeight: 700 }}>{data.score}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+          <span style={{ color: "#34d399" }}>Benchmark:</span>
+          <span style={{ fontWeight: 700 }}>{data.target}%</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomSkillGapTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#ffffff",
+          padding: "9px 13px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          minWidth: "160px",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#f8fafc", fontSize: "12px", marginBottom: "4px" }}>
+          {data.skill} Skill Gap
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", margin: "2px 0" }}>
+          <span style={{ color: "#fbbf24" }}>Current ({data.currentLevel}):</span>
+          <span style={{ fontWeight: 700 }}>{data.current}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", margin: "2px 0" }}>
+          <span style={{ color: "#a5b4fc" }}>Target ({data.targetLevel}):</span>
+          <span style={{ fontWeight: 700 }}>{data.target}%</span>
+        </div>
+        <div
+          style={{
+            marginTop: "4px",
+            paddingTop: "4px",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            display: "flex",
+            justifyContent: "space-between",
+            color: "#f87171",
+            fontWeight: 700,
+          }}
+        >
+          <span>Deficit Gap:</span>
+          <span>-{data.gap}%</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 function StudentDashboard({ navigate }: { navigate: (p: string) => void }) {
   const studentName = useStudentName();
   const greeting = useTimeGreeting();
   const allOpps = useOpportunities();
   const opportunities = allOpps.slice(0, 3);
-  return <><div className="welcome"><div><Badge tone="blue"><Icon name="spark" size={13} /> AI career coach active</Badge><h2>{greeting}, {studentName.split(" ")[0]}</h2><p>Here’s your current career readiness overview.</p></div><Button onClick={() => navigate("/student/profile")}>View public profile <Icon name="arrow" /></Button></div>
-    <div className="student-hero-grid"><Card className="readiness-card"><div className="card-head"><div><span className="eyebrow">INDUSTRY READINESS SCORE</span><h3>You’re industry ready</h3></div><Badge tone="green">+6 this month</Badge></div><div className="readiness-body"><ScoreRing score={82} /><div className="score-breakdown">{[["Technical Skills", 86], ["Projects", 78], ["Assessments", 88], ["Certifications", 75], ["Professional Skills", 82]].map(([n, v]) => <div key={n}><span><small>{n}</small><b>{v}%</b></span><Progress value={v as number} /></div>)}</div></div><div className="explain"><Icon name="spark" /><p><strong>Why 82?</strong> Your verified React and JavaScript skills are strong. Completing a testing project could add up to 5 points.</p></div></Card>
-      <Card className="gap-card"><div className="card-head"><div><span className="eyebrow">PRIORITY SKILL GAPS</span><h3>3 skills need improvement</h3></div><div className="warning-icon"><Icon name="chart" /></div></div>{[["React", "Intermediate", "Advanced", 82], ["SQL", "Beginner", "Intermediate", 68], ["Communication", "Intermediate", "Advanced", 80]].map(([n, a, b, p]) => <div className="gap-item" key={n}><div><strong>{n}</strong><span>{a} <Icon name="arrow" size={13} /> {b}</span></div><Progress value={p as number} tone={(p as number) < 70 ? "red" : "orange"} /></div>)}<Button variant="secondary" className="full" onClick={() => navigate("/student/recommendations")}>View complete skill gap <Icon name="arrow" /></Button></Card>
-    </div>
+  const [readinessView, setReadinessView] = useState<"bars" | "radar">("bars");
+
+  return (
+    <>
+      <div className="welcome">
+        <div>
+          <Badge tone="blue">
+            <Icon name="spark" size={13} /> AI career coach active
+          </Badge>
+          <h2>{greeting}, {studentName.split(" ")[0]}</h2>
+          <p>Here’s your current career readiness overview.</p>
+        </div>
+        <Button onClick={() => navigate("/student/profile")}>
+          View public profile <Icon name="arrow" />
+        </Button>
+      </div>
+
+      <div className="student-hero-grid">
+        {/* Card 1: INDUSTRY READINESS SCORE */}
+        <Card className="readiness-card">
+          <div className="card-head">
+            <div>
+              <span className="eyebrow">INDUSTRY READINESS SCORE</span>
+              <h3>You’re industry ready</h3>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Badge tone="green">+6 this month</Badge>
+              <div
+                style={{
+                  display: "inline-flex",
+                  background: "#f1f5f9",
+                  borderRadius: "8px",
+                  padding: "2px",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setReadinessView("bars")}
+                  style={{
+                    border: "none",
+                    background: readinessView === "bars" ? "#ffffff" : "transparent",
+                    color: readinessView === "bars" ? "#4338ca" : "#64748b",
+                    boxShadow: readinessView === "bars" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                    padding: "3px 8px",
+                    borderRadius: "6px",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Breakdown
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReadinessView("radar")}
+                  style={{
+                    border: "none",
+                    background: readinessView === "radar" ? "#ffffff" : "transparent",
+                    color: readinessView === "radar" ? "#4338ca" : "#64748b",
+                    boxShadow: readinessView === "radar" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                    padding: "3px 8px",
+                    borderRadius: "6px",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Radar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="readiness-body" style={{ marginTop: "16px", display: "flex", alignItems: "center", gap: "18px" }}>
+            {/* Recharts Donut Score Gauge */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: "none", width: 130 }}>
+              <div style={{ position: "relative", width: 130, height: 125, display: "grid", placeItems: "center" }}>
+                <ResponsiveContainer width={130} height={125}>
+                  <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                    <defs>
+                      <linearGradient id="readinessDonutGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#6d5dfc" />
+                        <stop offset="100%" stopColor="#3b82f6" />
+                      </linearGradient>
+                    </defs>
+                    <Pie
+                      data={studentReadinessGaugeData}
+                      dataKey="value"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={42}
+                      outerRadius={56}
+                      startAngle={90}
+                      endAngle={-270}
+                      stroke="none"
+                    >
+                      <Cell fill="url(#readinessDonutGrad)" />
+                      <Cell fill="#e2e8f0" />
+                    </Pie>
+                    <Tooltip content={<CustomReadinessGaugeTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    textAlign: "center",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <strong style={{ fontSize: "22px", fontWeight: 800, color: "#1e293b", display: "block", lineHeight: 1 }}>
+                    82
+                  </strong>
+                  <span style={{ fontSize: "10px", color: "#64748b", fontWeight: 600 }}>/ 100</span>
+                </div>
+              </div>
+              <Badge tone="green" style={{ marginTop: "2px", fontSize: "10px" }}>Industry Ready</Badge>
+            </div>
+
+            {/* Recharts Breakdown Bar/Radar Chart */}
+            <div style={{ flex: 1, minWidth: 0, height: 165 }}>
+              {readinessView === "bars" ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={studentReadinessBreakdownData}
+                    layout="vertical"
+                    margin={{ top: 4, right: 26, left: 18, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="readinessBarGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#6d5dfc" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="#818cf8" stopOpacity={1} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                    <XAxis
+                      type="number"
+                      domain={[0, 100]}
+                      tick={{ fontSize: 10, fill: "#94a3b8" }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="short"
+                      tick={{ fontSize: 11, fontWeight: 600, fill: "#475569" }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={52}
+                    />
+                    <ReferenceLine
+                      x={80}
+                      stroke="#10b981"
+                      strokeDasharray="3 3"
+                      label={{ value: "Target 80%", position: "top", fill: "#10b981", fontSize: 9, fontWeight: 700 }}
+                    />
+                    <Tooltip content={<CustomReadinessBarTooltip />} />
+                    <Bar dataKey="score" radius={[0, 4, 4, 0]} maxBarSize={13} fill="url(#readinessBarGrad)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={studentReadinessBreakdownData} margin={{ top: 4, right: 10, left: 10, bottom: 4 }}>
+                    <PolarGrid stroke="#e2e8f0" />
+                    <PolarAngleAxis dataKey="short" tick={{ fontSize: 10, fill: "#475569", fontWeight: 600 }} />
+                    <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                    <Radar name="Alex's Score" dataKey="score" stroke="#6d5dfc" fill="#6d5dfc" fillOpacity={0.45} />
+                    <Radar
+                      name="Target Benchmark"
+                      dataKey="target"
+                      stroke="#10b981"
+                      fill="#10b981"
+                      fillOpacity={0.12}
+                      strokeDasharray="3 3"
+                    />
+                    <Tooltip content={<CustomReadinessRadarTooltip />} />
+                    <Legend wrapperStyle={{ fontSize: 10, paddingTop: 2 }} iconType="circle" />
+                  </RadarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          <div className="explain">
+            <Icon name="spark" />
+            <p><strong>Why 82?</strong> Your verified React and JavaScript skills are strong. Completing a testing project could add up to 5 points.</p>
+          </div>
+        </Card>
+
+        {/* Card 2: PRIORITY SKILL GAPS */}
+        <Card className="gap-card">
+          <div className="card-head">
+            <div>
+              <span className="eyebrow">PRIORITY SKILL GAPS</span>
+              <h3>3 skills need improvement</h3>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <Badge tone="orange">Deficit Alert</Badge>
+              <div className="warning-icon" style={{ width: 32, height: 32 }}>
+                <Icon name="chart" size={16} />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ width: "100%", height: 175, marginTop: "6px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={studentPriorityGapsData} margin={{ top: 12, right: 10, left: -22, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gapCurrentGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.95} />
+                    <stop offset="100%" stopColor="#d97706" stopOpacity={0.8} />
+                  </linearGradient>
+                  <linearGradient id="gapTargetGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6d5dfc" stopOpacity={0.95} />
+                    <stop offset="100%" stopColor="#4338ca" stopOpacity={0.8} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis
+                  dataKey="skill"
+                  tick={{ fill: "#475569", fontSize: 11, fontWeight: 600 }}
+                  axisLine={{ stroke: "#e2e8f0" }}
+                  tickLine={false}
+                />
+                <YAxis domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomSkillGapTooltip />} />
+                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" />
+                <Bar
+                  dataKey="current"
+                  name="Current Level (%)"
+                  fill="url(#gapCurrentGrad)"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={20}
+                />
+                <Bar
+                  dataKey="target"
+                  name="Target Required (%)"
+                  fill="url(#gapTargetGrad)"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={20}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "8px",
+              margin: "12px 0 14px",
+            }}
+          >
+            {studentPriorityGapsData.map((item) => (
+              <div
+                key={item.skill}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                  padding: "7px 9px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "2px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <strong style={{ fontSize: "11px", color: "#1e293b" }}>{item.skill}</strong>
+                  <span style={{ fontSize: "10px", color: "#ef4444", fontWeight: 700 }}>-{item.gap}%</span>
+                </div>
+                <div style={{ fontSize: "9px", color: "#64748b", display: "flex", alignItems: "center", gap: "3px" }}>
+                  <span>{item.currentLevel}</span>
+                  <span style={{ color: "#94a3b8" }}>→</span>
+                  <span style={{ color: "#4338ca", fontWeight: 600 }}>{item.targetLevel}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Button variant="secondary" className="full" onClick={() => navigate("/student/recommendations")}>
+            View complete skill gap <Icon name="arrow" />
+          </Button>
+        </Card>
+      </div>
     <div className="content-grid">
       <div>
         <SectionTitle title="Recommended learning" subtitle="Personalized to close your highest-impact gaps" action={<button className="text-link" onClick={() => navigate("/student/recommendations")}>View roadmap <Icon name="arrow" /></button>} />
@@ -932,7 +1408,7 @@ function StudentDashboard({ navigate }: { navigate: (p: string) => void }) {
         </Card>
       </div>
     </div>
-  </>;
+  </>);
 }
 
 function ResumePanel({ onFile }: { onFile: (file: File) => void }) {
