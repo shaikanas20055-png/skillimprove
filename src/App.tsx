@@ -4003,6 +4003,172 @@ function CollegeVerifyProjects() {
   );
 }
 
+const collegeSkillDistributionData = [
+  { skill: "Programming", proficient: 84, students: 4048, benchmark: "Top 10%" },
+  { skill: "Web Dev", proficient: 78, students: 3760, benchmark: "Strong" },
+  { skill: "Data", proficient: 65, students: 3133, benchmark: "Average" },
+  { skill: "AI / ML", proficient: 57, students: 2747, benchmark: "Growing" },
+  { skill: "Cloud", proficient: 52, students: 2506, benchmark: "Needs Focus" },
+  { skill: "Cyber", proficient: 41, students: 1976, benchmark: "Critical Gap" },
+];
+
+const collegeSkillGapsData = [
+  { skill: "Cloud", fullName: "Cloud Computing", supply: 32, gap: 68, priority: "Critical" },
+  { skill: "AI / ML", fullName: "AI / Machine Learning", supply: 38, gap: 62, priority: "High" },
+  { skill: "Tech Comm", fullName: "Technical Communication", supply: 42, gap: 58, priority: "Moderate" },
+  { skill: "React", fullName: "React Development", supply: 51, gap: 49, priority: "Moderate" },
+];
+
+const collegePlacementTrendData = [
+  { year: "2020", rate: 58, placedStudents: 1740, avgPackage: "4.8 LPA" },
+  { year: "2021", rate: 64, placedStudents: 2110, avgPackage: "5.4 LPA" },
+  { year: "2022", rate: 71, placedStudents: 2580, avgPackage: "6.2 LPA" },
+  { year: "2023", rate: 75, placedStudents: 2940, avgPackage: "7.1 LPA" },
+  { year: "2024", rate: 79, placedStudents: 3320, avgPackage: "7.8 LPA" },
+  { year: "2025", rate: 82, placedStudents: 3680, avgPackage: "8.4 LPA" },
+];
+
+function CustomCollegeSkillDistTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#ffffff",
+          padding: "9px 13px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          minWidth: "155px",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#34d399", fontSize: "12px", marginBottom: "4px" }}>
+          {data.skill}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", margin: "2px 0" }}>
+          <span style={{ color: "#94a3b8" }}>Intermediate+ Rate:</span>
+          <span style={{ fontWeight: 700, color: "#38bdf8" }}>{data.proficient}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", margin: "2px 0" }}>
+          <span style={{ color: "#94a3b8" }}>Verified Students:</span>
+          <span style={{ fontWeight: 700, color: "#f8fafc" }}>{data.students.toLocaleString()}</span>
+        </div>
+        <div
+          style={{
+            marginTop: "4px",
+            paddingTop: "4px",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            display: "flex",
+            justifyContent: "space-between",
+            color: "#a7f3d0",
+            fontWeight: 700,
+          }}
+        >
+          <span>Institutional Standing:</span>
+          <span>{data.benchmark}</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomCollegeSkillGapTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#ffffff",
+          padding: "9px 13px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          minWidth: "160px",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#f8fafc", fontSize: "12px", marginBottom: "4px" }}>
+          {data.fullName}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", margin: "2px 0" }}>
+          <span style={{ color: "#38bdf8" }}>Student Supply:</span>
+          <span style={{ fontWeight: 700 }}>{data.supply}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", margin: "2px 0" }}>
+          <span style={{ color: "#fb923c" }}>Institutional Gap:</span>
+          <span style={{ fontWeight: 700 }}>{data.gap}%</span>
+        </div>
+        <div
+          style={{
+            marginTop: "4px",
+            paddingTop: "4px",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            display: "flex",
+            justifyContent: "space-between",
+            color: data.gap > 60 ? "#f87171" : "#fbbf24",
+            fontWeight: 700,
+          }}
+        >
+          <span>Intervention Priority:</span>
+          <span>{data.priority}</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomPlacementTrendTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#ffffff",
+          padding: "9px 13px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          minWidth: "160px",
+        }}
+      >
+        <div style={{ fontWeight: 700, color: "#34d399", fontSize: "12px", marginBottom: "4px" }}>
+          {data.year} Graduating Cohort
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", margin: "2px 0" }}>
+          <span style={{ color: "#94a3b8" }}>Placement Rate:</span>
+          <span style={{ fontWeight: 700, color: "#38bdf8" }}>{data.rate}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", margin: "2px 0" }}>
+          <span style={{ color: "#94a3b8" }}>Students Placed:</span>
+          <span style={{ fontWeight: 700, color: "#f8fafc" }}>{data.placedStudents.toLocaleString()}</span>
+        </div>
+        <div
+          style={{
+            marginTop: "4px",
+            paddingTop: "4px",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            display: "flex",
+            justifyContent: "space-between",
+            color: "#4ade80",
+            fontWeight: 700,
+          }}
+        >
+          <span>Avg CTC Package:</span>
+          <span>{data.avgPackage}</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 function CollegeDashboard({ navigate }: { navigate: (p: string) => void }) {
   const [recOpen, setRecOpen] = useState(false);
   const [toast, setToast] = useState("");
@@ -4014,7 +4180,141 @@ function CollegeDashboard({ navigate }: { navigate: (p: string) => void }) {
 
   return <><div className="welcome"><div><Badge tone="green"><Icon name="building" size={13} /> INSTITUTION WORKSPACE</Badge><h2>Welcome, ABC Institute of Technology</h2><p>Track readiness, close skill gaps and improve student outcomes.</p></div><Button variant="secondary" onClick={handleExport}>Download report</Button></div>
   {toast && <div className="profile-notice" role="status" style={{ marginBottom: "1rem" }}>{toast}<button aria-label="Dismiss" onClick={() => setToast("")}>×</button></div>}
-  <div className="kpi-grid six"><KpiCard label="Total students" value="4,820" note="+240 this year" icon="users" /><KpiCard label="Industry ready" value="68%" note="+7% vs last year" icon="check" tone="green" /><KpiCard label="Students with gaps" value="1,245" note="26% of students" icon="chart" tone="orange" /><KpiCard label="Industry partners" value="32" note="+6 this semester" icon="briefcase" tone="purple" /><KpiCard label="Placement rate" value="82%" note="+5.4% YoY" icon="building" tone="green" /><KpiCard label="Avg. readiness" value="76/100" note="+4 points this term" icon="spark" /></div><div className="analytics-grid college"><Card><SectionTitle title="Student skill distribution" subtitle="Students with verified intermediate+ proficiency" /><MiniChart values={[84, 78, 65, 57, 52, 41]} labels={["Programming", "Web Dev", "Data", "AI/ML", "Cloud", "Cyber"]} color="green" /></Card><Card><SectionTitle title="Skill gap overview" subtitle="Highest priority institutional gaps" action={<button className="text-link" onClick={() => navigate("/college/verify-projects")}>Verify projects <Icon name="arrow" /></button>} />{[["Cloud Computing", 32, 68], ["AI / Machine Learning", 38, 62], ["Technical Communication", 42, 58], ["React Development", 51, 49]].map(([x, supply, gap]) => <div className="college-gap" key={x as string}><div><strong>{x}</strong><Badge tone={gap as number > 60 ? "red" : "orange"}>{gap}% gap</Badge></div><Progress value={supply as number} tone={supply as number < 40 ? "red" : "orange"} /><small>{supply}% student supply</small></div>)}</Card></div><div className="analytics-grid"><Card><SectionTitle title="Placement trend" subtitle="Placement rate across graduating cohorts" /><div className="line-chart"><svg viewBox="0 0 500 180" preserveAspectRatio="none"><defs><linearGradient id="greenarea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#12a174" stopOpacity=".28" /><stop offset="1" stopColor="#12a174" stopOpacity="0" /></linearGradient></defs><path d="M0 155 C80 140 100 145 165 110 S245 120 320 65 S410 70 500 25 L500 180 L0 180Z" fill="url(#greenarea)" /><path d="M0 155 C80 140 100 145 165 110 S245 120 320 65 S410 70 500 25" fill="none" stroke="#12a174" strokeWidth="4" /></svg><div>{["2020", "2021", "2022", "2023", "2024", "2025"].map(x => <span key={x}>{x}</span>)}</div></div></Card><Card className="insight-card"><span className="spark-icon"><Icon name="spark" /></span><Badge tone="purple">AI INSIGHT</Badge><h3>React training could unlock 126 students.</h3><p>42% of final-year students targeting frontend roles have a React gap. A focused 4-week program could improve average readiness by 15 points.</p><Button onClick={() => setRecOpen(true)}>View recommendation <Icon name="arrow" /></Button></Card></div>
+  <div className="kpi-grid six"><KpiCard label="Total students" value="4,820" note="+240 this year" icon="users" /><KpiCard label="Industry ready" value="68%" note="+7% vs last year" icon="check" tone="green" /><KpiCard label="Students with gaps" value="1,245" note="26% of students" icon="chart" tone="orange" /><KpiCard label="Industry partners" value="32" note="+6 this semester" icon="briefcase" tone="purple" /><KpiCard label="Placement rate" value="82%" note="+5.4% YoY" icon="building" tone="green" /><KpiCard label="Avg. readiness" value="76/100" note="+4 points this term" icon="spark" /></div>
+  <div className="analytics-grid college">
+    <Card style={{ padding: "18px 20px" }}>
+      <SectionTitle
+        title="Student skill distribution"
+        subtitle="Students with verified intermediate+ proficiency"
+        action={<Badge tone="green">Verified Proficiency</Badge>}
+      />
+      <div style={{ width: "100%", height: 215, marginTop: "6px" }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={collegeSkillDistributionData} margin={{ top: 12, right: 10, left: -22, bottom: 0 }}>
+            <defs>
+              <linearGradient id="collegeSkillDistGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <XAxis
+              dataKey="skill"
+              tick={{ fill: "#475569", fontSize: 11, fontWeight: 600 }}
+              axisLine={{ stroke: "#e2e8f0" }}
+              tickLine={false}
+            />
+            <YAxis domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+            <Tooltip content={<CustomCollegeSkillDistTooltip />} />
+            <Bar
+              dataKey="proficient"
+              name="Proficiency (%)"
+              fill="url(#collegeSkillDistGrad)"
+              radius={[5, 5, 0, 0]}
+              maxBarSize={28}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+
+    <Card style={{ padding: "18px 20px" }}>
+      <SectionTitle
+        title="Skill gap overview"
+        subtitle="Highest priority institutional gaps"
+        action={<button className="text-link" onClick={() => navigate("/college/verify-projects")}>Verify projects <Icon name="arrow" /></button>}
+      />
+      <div style={{ width: "100%", height: 185, marginTop: "6px" }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={collegeSkillGapsData} margin={{ top: 10, right: 10, left: -24, bottom: 0 }}>
+            <defs>
+              <linearGradient id="collegeSupplyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.95} />
+                <stop offset="100%" stopColor="#0284c7" stopOpacity={0.8} />
+              </linearGradient>
+              <linearGradient id="collegeGapGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.95} />
+                <stop offset="100%" stopColor="#ea580c" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <XAxis
+              dataKey="skill"
+              tick={{ fill: "#475569", fontSize: 10.5, fontWeight: 600 }}
+              axisLine={{ stroke: "#e2e8f0" }}
+              tickLine={false}
+            />
+            <YAxis domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+            <Tooltip content={<CustomCollegeSkillGapTooltip />} />
+            <Legend wrapperStyle={{ fontSize: 10.5, paddingTop: 3 }} iconType="circle" />
+            <Bar dataKey="supply" name="Student Supply (%)" fill="url(#collegeSupplyGrad)" radius={[4, 4, 0, 0]} maxBarSize={18} />
+            <Bar dataKey="gap" name="Institutional Gap (%)" fill="url(#collegeGapGrad)" radius={[4, 4, 0, 0]} maxBarSize={18} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #f1f5f9" }}>
+        <span style={{ fontSize: "10px", color: "#64748b" }}>Prioritized by campus placement impact</span>
+        <button className="text-link" onClick={() => navigate("/college/verify-projects")} style={{ fontSize: "10px", fontWeight: 700 }}>
+          Verify student projects <Icon name="arrow" size={11} />
+        </button>
+      </div>
+    </Card>
+  </div>
+
+  <div className="analytics-grid">
+    <Card style={{ padding: "18px 20px" }}>
+      <SectionTitle
+        title="Placement trend"
+        subtitle="Placement rate across graduating cohorts (2020 – 2025)"
+        action={<Badge tone="green">+5.4% YoY Growth</Badge>}
+      />
+      <div style={{ width: "100%", height: 215, marginTop: "6px" }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={collegePlacementTrendData} margin={{ top: 12, right: 10, left: -22, bottom: 0 }}>
+            <defs>
+              <linearGradient id="placementTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <XAxis
+              dataKey="year"
+              tick={{ fill: "#475569", fontSize: 11, fontWeight: 600 }}
+              axisLine={{ stroke: "#e2e8f0" }}
+              tickLine={false}
+            />
+            <YAxis
+              domain={[50, 100]}
+              tick={{ fill: "#94a3b8", fontSize: 10 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip content={<CustomPlacementTrendTooltip />} />
+            <Area
+              type="monotone"
+              dataKey="rate"
+              name="Placement Rate (%)"
+              stroke="#10b981"
+              strokeWidth={3}
+              fillOpacity={1}
+              fill="url(#placementTrendGrad)"
+              dot={{ r: 3, fill: "#10b981", strokeWidth: 1, stroke: "#fff" }}
+              activeDot={{ r: 6, fill: "#10b981", stroke: "#fff", strokeWidth: 2 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+
+    <Card className="insight-card">
+      <span className="spark-icon"><Icon name="spark" /></span>
+      <Badge tone="purple">AI INSIGHT</Badge>
+      <h3>React training could unlock 126 students.</h3>
+      <p>42% of final-year students targeting frontend roles have a React gap. A focused 4-week program could improve average readiness by 15 points.</p>
+      <Button onClick={() => setRecOpen(true)}>View recommendation <Icon name="arrow" /></Button>
+    </Card>
+  </div>
   {recOpen && (
     <FeatureDialog title="AI Curriculum Recommendation" close={() => setRecOpen(false)}>
       <div style={{ padding: "0.5rem 0" }}>
