@@ -541,12 +541,13 @@ export default function ProfileWorkspace({
           <section
             className="card"
             style={{
-              background: "linear-gradient(135deg, #1e293b, #0f172a)",
-              color: "white",
+              background: "#ffffff",
+              color: "#0f172a",
               padding: "20px",
               borderRadius: "14px",
               marginBottom: "16px",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
@@ -557,10 +558,10 @@ export default function ProfileWorkspace({
                 Standalone Tool
               </span>
             </div>
-            <h3 style={{ margin: "0 0 6px", fontSize: "16px", color: "white", fontWeight: 800 }}>
+            <h3 style={{ margin: "0 0 6px", fontSize: "16px", color: "#0f172a", fontWeight: 800 }}>
               Resume Analyzer (ATS)
             </h3>
-            <p style={{ margin: "0 0 14px", color: "#94a3b8", fontSize: "12px", lineHeight: 1.5 }}>
+            <p style={{ margin: "0 0 14px", color: "#64748b", fontSize: "12px", lineHeight: 1.5 }}>
               Test your resume against real software engineering roles. Computes role-specific ATS match scores, detects missing core skills, and suggests target keywords.
             </p>
             <button
