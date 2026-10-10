@@ -197,7 +197,7 @@ export function ShortlistedCandidatesView({ navigate, openResumeModal }: Shortli
           border: "1px solid var(--line)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: "260px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: "min(260px, 100%)" }}>
           <input
             type="text"
             placeholder="Search candidate name, email ID, skill, or college..."
@@ -344,6 +344,8 @@ export function ShortlistedCandidatesView({ navigate, openResumeModal }: Shortli
                           fontSize: "12px",
                           fontWeight: 600,
                           fontFamily: "ui-monospace, monospace",
+                          wordBreak: "break-all",
+                          maxWidth: "100%",
                         }}
                       >
                         ✉️ {candidate.email}

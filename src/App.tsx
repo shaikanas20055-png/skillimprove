@@ -339,8 +339,10 @@ function AppShell({ role, page, navigate, logout }: { role: Role; page: string; 
   const [notices, setNotices] = useState<Notice[]>(() => getNotices(role));
   const studentName = useStudentName();
   const hoverTimeout = useRef<number | null>(null);
+  const isPinnedRef = useRef(false);
 
   const handleMenuHoverEnter = () => {
+    if (typeof window !== "undefined" && window.innerWidth <= 1024) return;
     if (hoverTimeout.current) {
       clearTimeout(hoverTimeout.current);
       hoverTimeout.current = null;
@@ -349,7 +351,8 @@ function AppShell({ role, page, navigate, logout }: { role: Role; page: string; 
   };
 
   const handleMenuHoverLeave = () => {
-    if (isPinned) return;
+    if (typeof window !== "undefined" && window.innerWidth <= 1024) return;
+    if (isPinnedRef.current) return;
     if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
     hoverTimeout.current = window.setTimeout(() => {
       setMenu(false);
@@ -365,8 +368,19 @@ function AppShell({ role, page, navigate, logout }: { role: Role; page: string; 
 
   const closeSidebar = () => {
     cancelCloseTimeout();
+    isPinnedRef.current = false;
     setIsPinned(false);
     setMenu(false);
+  };
+
+  const toggleSidebar = () => {
+    cancelCloseTimeout();
+    setMenu(prev => {
+      const next = !prev;
+      isPinnedRef.current = next;
+      setIsPinned(next);
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -492,7 +506,7 @@ function AppShell({ role, page, navigate, logout }: { role: Role; page: string; 
       </div>
     </aside>
     {menu && <div className="scrim" onClick={closeSidebar} />}
-    <main className="app-main"><header><div><button aria-label="Open navigation" aria-expanded={menu} aria-controls="workspace-navigation" className={`menu-btn ${menu ? "menu-open" : ""}`} onMouseEnter={handleMenuHoverEnter} onMouseLeave={handleMenuHoverLeave} onClick={() => { cancelCloseTimeout(); setMenu(prev => { const next = !prev; setIsPinned(next); return next; }); }}><span className="menu-lines" aria-hidden="true"><span className="menu-line line-1" /><span className="menu-line line-2" /><span className="menu-line line-3" /></span></button><div><small>{config.label} portal</small><h1>{page === "dashboard" ? "Dashboard" : titles[page] || "Dashboard"}</h1></div></div><div className="header-tools"><button aria-label="Search workspace" className="search-box" onClick={() => setSearchOpen(true)}><Icon name="search" /><span>Search anything...</span><kbd>⌘ K</kbd></button><button type="button" className={`icon-btn theme-toggle-btn ${isDark ? "is-dark" : "is-light"}`} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} title={isDark ? "Switch to light mode" : "Switch to dark mode"} onClick={toggleTheme}><Icon name={isDark ? "sun" : "moon"} size={17} /></button><button className="icon-btn notification-trigger" aria-label={`Open notifications, ${notices.filter(item => !item.read).length} unread`} onClick={() => setNotificationsOpen(true)}><Icon name="bell" />{notices.some(item => !item.read) && <i />}</button><div className="user-chip"><span>{config.initials}</span><div><strong>{config.name}</strong><small>{config.label}</small></div></div></div></header>
+    <main className="app-main"><header><div><button aria-label="Open navigation" aria-expanded={menu} aria-controls="workspace-navigation" className={`menu-btn ${menu ? "menu-open" : ""}`} onMouseEnter={handleMenuHoverEnter} onMouseLeave={handleMenuHoverLeave} onClick={toggleSidebar}><span className="menu-lines" aria-hidden="true"><span className="menu-line line-1" /><span className="menu-line line-2" /><span className="menu-line line-3" /></span></button><div><small>{config.label} portal</small><h1>{page === "dashboard" ? "Dashboard" : titles[page] || "Dashboard"}</h1></div></div><div className="header-tools"><button aria-label="Search workspace" className="search-box" onClick={() => setSearchOpen(true)}><Icon name="search" /><span>Search anything...</span><kbd>⌘ K</kbd></button><button type="button" className={`icon-btn theme-toggle-btn ${isDark ? "is-dark" : "is-light"}`} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} title={isDark ? "Switch to light mode" : "Switch to dark mode"} onClick={toggleTheme}><Icon name={isDark ? "sun" : "moon"} size={17} /></button><button className="icon-btn notification-trigger" aria-label={`Open notifications, ${notices.filter(item => !item.read).length} unread`} onClick={() => setNotificationsOpen(true)}><Icon name="bell" />{notices.some(item => !item.read) && <i />}</button><div className="user-chip"><span>{config.initials}</span><div><strong>{config.name}</strong><small>{config.label}</small></div></div></div></header>
       <div className="app-content">{role === "student" ? <StudentPages page={page} navigate={navigate} /> : role === "industry" ? <IndustryPages page={page} navigate={navigate} /> : <CollegePages page={page} navigate={navigate} />}</div>
     </main>
     {searchOpen && <WorkspaceSearch role={role} navigate={navigate} close={() => setSearchOpen(false)} />}
@@ -1391,7 +1405,7 @@ function StudentDashboard({ navigate }: { navigate: (p: string) => void }) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(90px, 100%), 1fr))",
               gap: "8px",
               margin: "12px 0 14px",
             }}
@@ -1679,7 +1693,7 @@ function ResumePanel({ onFile }: { onFile: (file: File) => void }) {
             <small style={{ fontWeight: 700, color: "#334155" }}>RESUME CRITERIA CHECKLIST</small>
             <span style={{ fontSize: "0.75rem", color: "#0284c7", fontWeight: 600 }}>Skills & Technical Skills Treated Same</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", fontSize: "0.8rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: "0.5rem", fontSize: "0.8rem" }}>
             <div>
               <span>Skills / Technical Skills: </span>
               {analysisResult.detectedSkills.length > 0 ? (
@@ -3177,7 +3191,8 @@ function SkillDemandAnalytics({
               borderRadius: "8px",
               fontSize: "12px",
               background: "white",
-              minWidth: "220px",
+              minWidth: "min(220px, 100%)",
+              flex: 1,
             }}
           />
           {search && (
@@ -3214,9 +3229,8 @@ function SkillDemandAnalytics({
             }}
           >
             <div
+              className="supply-metric-grid"
               style={{
-                display: "grid",
-                gridTemplateColumns: "1.3fr 1fr 1fr 110px",
                 alignItems: "center",
                 gap: "12px",
               }}
@@ -4394,7 +4408,7 @@ function CollegeDashboard({ navigate }: { navigate: (p: string) => void }) {
         <p style={{ color: "#475569", fontSize: "0.9rem" }}>
           Analysis of 1,240 partner job postings shows 68% require intermediate React proficiency, but only 51% of your final-year Computer Science students have verified evidence.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", margin: "1rem 0", background: "#f8fafc", padding: "1rem", borderRadius: "0.5rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(140px, 100%), 1fr))", gap: "0.75rem", margin: "1rem 0", background: "#f8fafc", padding: "1rem", borderRadius: "0.5rem" }}>
           <div><small style={{ color: "#64748b" }}>Target Cohort:</small><strong style={{ display: "block" }}>126 CS/IT Students</strong></div>
           <div><small style={{ color: "#64748b" }}>Duration:</small><strong style={{ display: "block" }}>4 Weeks (Intensive)</strong></div>
           <div><small style={{ color: "#64748b" }}>Projected Readiness:</small><strong style={{ display: "block", color: "#10b981" }}>+15 Points (76 ➔ 91)</strong></div>

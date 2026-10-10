@@ -185,7 +185,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div className="ats-hero-actions" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <button
             type="button"
             className="btn btn-secondary"
@@ -210,7 +210,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
       </div>
 
       {/* Two Column Control: Target Role Search & Resume Upload */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "20px" }}>
+      <div className="ats-control-grid">
         {/* Left: Role Search & Seniority Selector */}
         <div className="card" style={{ padding: "20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -279,7 +279,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
                 {selectedRole.seniority_levels.find((s) => s.level === selectedSeniority)?.expected_experience}
               </span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
+            <div className="ats-seniority-grid">
               {(["Junior", "Mid", "Senior"] as SeniorityLevel[]).map((level) => (
                 <button
                   key={level}
@@ -471,7 +471,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
         </div>
 
         {/* Breakdown Metric Tiles */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "24px" }}>
+        <div className="ats-metric-tiles-grid">
           <div style={{ padding: "14px", background: "#f8fafc", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
             <small style={{ color: "#64748b", fontSize: "11px", fontWeight: 600 }}>CORE SKILLS MATCH</small>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: "4px" }}>
@@ -526,7 +526,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
         </div>
 
         {/* Tab Navigation */}
-        <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", gap: "10px", marginBottom: "20px" }}>
+        <div className="ats-tabs-nav" style={{ display: "flex", borderBottom: "1px solid #e2e8f0", gap: "10px", marginBottom: "20px" }}>
           {[
             { id: "overview", label: "Overview & Summary", icon: "📊" },
             { id: "matched", label: `Matched Skills (${result.matchedSkills.length})`, icon: "✓" },
@@ -559,7 +559,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
 
         {/* TAB 1: OVERVIEW */}
         {activeTab === "overview" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "20px" }}>
+          <div className="ats-overview-grid">
             <div>
               <h4 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 700, color: "#1e293b" }}>
                 Priority Action Plan
@@ -639,7 +639,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
               <span className="badge badge-green">{result.matchedSkills.length} Verified</span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <div className="ats-skills-two-col">
               {result.matchedSkills.map((match, i) => (
                 <div
                   key={i}
@@ -720,7 +720,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
                   🎉 Great job! No critical core skills are missing for the {selectedRole.name} profile.
                 </div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                <div className="ats-skills-two-col">
                   {result.missingCoreSkills.map((s, idx) => (
                     <div
                       key={idx}
@@ -758,7 +758,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
                     Frequently requested to differentiate candidates.
                   </span>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                <div className="ats-skills-two-col">
                   {result.missingImportantSkills.map((s, idx) => (
                     <div
                       key={idx}

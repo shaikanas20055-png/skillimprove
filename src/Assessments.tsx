@@ -1040,7 +1040,7 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
         className="assessment-catalog"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(min(280px, 100%), 1fr))",
           gap: "16px",
           marginBottom: "32px",
         }}
