@@ -201,7 +201,17 @@ function Logo({ dark = false }: { dark?: boolean }) {
   return (
     <div className={`logo ${dark ? "logo-dark" : ""}`}>
       <span className="logo-mark">
-        <img src={logoImg} alt="SkillImprove Logo" className="logo-img" />
+        <img
+          src={logoImg}
+          alt="SkillImprove Logo"
+          className="logo-img"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.endsWith("/logo.png")) {
+              target.src = "/logo.png";
+            }
+          }}
+        />
       </span>
       <span>Skill<span>Improve</span></span>
     </div>
