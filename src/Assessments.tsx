@@ -427,7 +427,7 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
               {/* Input Types */}
               {currentQ.type === "multiple-choice" && currentQ.options ? (
                 <div className="answers" style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
-                  {currentQ.options.map((option, i) => {
+                  {currentQ.options.map((option: string, i: number) => {
                     const isSelected = answers[currentQuestionIndex] === option;
                     return (
                       <button

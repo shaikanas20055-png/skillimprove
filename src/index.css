@@ -16,6 +16,22 @@
   --shadow: 0 12px 32px rgba(25, 39, 75, .07);
 }
 
+:root.dark,
+html.dark {
+  --ink: #f8fafc;
+  --muted: #94a3b8;
+  --line: #1e293b;
+  --soft: #0a0f1d;
+  --blue: #4f75f8;
+  --blue-soft: #172445;
+  --purple: #8b7cfc;
+  --green: #10b981;
+  --green-soft: rgba(16, 185, 129, 0.15);
+  --orange: #f59e0b;
+  --red: #f43f5e;
+  --shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--soft); color: var(--ink); font-family: "DM Sans", sans-serif; -webkit-font-smoothing: antialiased; }
@@ -2255,3 +2271,866 @@ footer { height: 100px; padding: 0 max(24px, calc((100vw - 1180px)/2)); display:
     padding: 8px 0;
   }
 }
+
+/* ============================================================
+   Dark Mode & Navigation Bar Theme Toggle Styling
+   ============================================================ */
+
+/* Navigation Bar Theme Toggle */
+.theme-toggle-btn {
+  position: relative;
+  overflow: hidden;
+  color: #c7d6ee;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.35);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-btn.is-dark {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.theme-toggle-btn.is-dark:hover {
+  background: rgba(251, 191, 36, 0.22);
+  border-color: rgba(251, 191, 36, 0.55);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.35);
+}
+
+.theme-toggle-btn svg {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-toggle-btn:hover svg {
+  transform: rotate(20deg) scale(1.1);
+}
+
+.theme-toggle-side-btn {
+  width: 100%;
+  height: 40px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 8px;
+  color: #aeb8ca;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-side-btn:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.theme-pill-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.public-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Smooth Theme Transitions */
+body,
+.card,
+.app-main > header,
+.app-shell > aside,
+.public-nav-wrapper,
+.landing,
+.workspace-modal,
+.job-card,
+.candidate-card,
+.btn,
+.search-box {
+  transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
+}
+
+/* Dark Mode Global Overrides */
+html.dark body {
+  background: #0a0f1d;
+  color: #f8fafc;
+}
+
+/* Shell & Headers */
+html.dark .app-main > header {
+  background: #0b1120;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .app-shell > aside {
+  background: #080d19;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html.dark .public-nav-wrapper {
+  background: #080d19;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+}
+
+/* Landing Page */
+html.dark .landing {
+  background: #0a0f1d;
+  color: #f8fafc;
+}
+
+html.dark .hero {
+  background: radial-gradient(circle at 78% 45%, #162244 0, #0c1224 35%, transparent 60%), linear-gradient(180deg, #0e162a, #0a0f1d);
+}
+
+html.dark .hero-copy h1 {
+  color: #f8fafc;
+}
+
+html.dark .hero-copy > p {
+  color: #94a3b8;
+}
+
+html.dark .trust-row {
+  color: #94a3b8;
+}
+
+html.dark .preview-window {
+  border-color: #1e293b;
+  background: #111a2e;
+  box-shadow: 0 35px 70px rgba(0, 0, 0, 0.55);
+}
+
+html.dark .preview-top {
+  border-bottom-color: #1e293b;
+  color: #94a3b8;
+}
+
+html.dark .preview-main {
+  background: #0c1324;
+  color: #f8fafc;
+}
+
+html.dark .preview-main h3 {
+  color: #f8fafc;
+}
+
+html.dark .preview-grid > div {
+  background: #111a2e;
+  border-color: #1e293b;
+}
+
+html.dark .preview-course {
+  background: #111a2e;
+  border-color: #1e293b;
+}
+
+html.dark .preview-course strong {
+  color: #f8fafc;
+}
+
+html.dark .float-card {
+  background: #141f38;
+  border-color: #24355a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .float-card strong {
+  color: #f8fafc;
+}
+
+html.dark .how {
+  background: #0d1424;
+}
+
+html.dark .step-icon {
+  background: #111a2e;
+  border-color: #1e293b;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .step strong {
+  color: #f8fafc;
+}
+
+html.dark .step > span {
+  color: #64748b;
+}
+
+html.dark .feature-list {
+  background: #1e293b;
+  border-color: #1e293b;
+}
+
+html.dark .feature-list > div {
+  background: #111a2e;
+  color: #f8fafc;
+}
+
+html.dark .feature-list strong {
+  color: #f8fafc;
+}
+
+html.dark .feature-list small {
+  color: #94a3b8;
+}
+
+html.dark .feature-list > div > span {
+  background: #172445;
+  color: #829aff;
+}
+
+html.dark .features h2 {
+  color: #f8fafc;
+}
+
+html.dark .features > div:first-child p {
+  color: #94a3b8;
+}
+
+html.dark footer {
+  background: #070b14;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Login Page */
+html.dark .login-page {
+  background: #0a0f1d;
+}
+
+html.dark .login-panel {
+  background: #0a0f1d;
+}
+
+html.dark .login-box h2 {
+  color: #f8fafc;
+}
+
+html.dark .login-box > p {
+  color: #94a3b8;
+}
+
+html.dark .role-tabs {
+  background: #121c32;
+}
+
+html.dark .role-tabs button {
+  color: #94a3b8;
+}
+
+html.dark .role-tabs button.active {
+  background: #1e2a47;
+  color: #829aff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+}
+
+html.dark .demo-note {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
+html.dark .demo-note small {
+  color: #6ee7b7;
+}
+
+/* Cards & Containers */
+html.dark .card {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+html.dark .btn-secondary {
+  color: #f8fafc;
+  background: #15223c;
+  border: 1px solid #243557;
+}
+
+html.dark .btn-secondary:hover {
+  background: #1c2c4d;
+  border-color: #354d7e;
+  color: #ffffff;
+}
+
+html.dark .section-title h2,
+html.dark .welcome h2,
+html.dark .card-head h3 {
+  color: #f8fafc;
+}
+
+html.dark .section-title p,
+html.dark .welcome p {
+  color: #94a3b8;
+}
+
+html.dark .body-copy {
+  color: #94a3b8;
+}
+
+/* Modals & Dialogs */
+html.dark .workspace-modal {
+  background: #10182b;
+  border: 1px solid #223253;
+  color: #f8fafc;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+html.dark .modal-heading button,
+html.dark .side-head > button {
+  color: #94a3b8;
+}
+
+html.dark .workspace-search-input {
+  background: #0f172a;
+  border: 1px solid #223253;
+  color: #f8fafc;
+}
+
+html.dark .workspace-search-input input {
+  color: #f8fafc;
+}
+
+html.dark .search-results button {
+  color: #cbd5e1;
+  background: #131c33;
+  border: 1px solid #1e293b;
+}
+
+html.dark .search-results button:hover {
+  background: #1c2a4c;
+  color: #ffffff;
+  border-color: #3b5fbf;
+}
+
+/* Form Controls */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea,
+html.dark .login-box input,
+html.dark .form-grid input,
+html.dark .form-grid select,
+html.dark .form-grid textarea,
+html.dark .tag-input,
+html.dark .opportunity-filters select {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  color: #f8fafc;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: #4f75f8;
+  box-shadow: 0 0 0 3px rgba(79, 117, 248, 0.25);
+}
+
+html.dark .login-box form label,
+html.dark .form-grid label,
+html.dark .opportunity-form > label,
+html.dark .form-section > div > label {
+  color: #cbd5e1;
+}
+
+/* Tables */
+html.dark .table-row {
+  border-bottom: 1px solid #1a253b;
+  color: #e2e8f0;
+}
+
+html.dark .table-row.header {
+  background: #152037;
+  color: #94a3b8;
+  border-bottom: 1px solid #1a253b;
+}
+
+html.dark .table-row:hover:not(.header) {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+/* Search & Filters */
+html.dark .job-search,
+html.dark .candidate-search {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .job-search input,
+html.dark .candidate-search input {
+  color: #f8fafc;
+}
+
+html.dark .filter-row button {
+  background: #141e35;
+  border: 1px solid #203050;
+  color: #cbd5e1;
+}
+
+html.dark .filter-row button:hover {
+  background: #1b2846;
+  color: #ffffff;
+}
+
+html.dark .filter-row button.selected {
+  background: #1a2b50;
+  border-color: #3b5fbf;
+  color: #829aff;
+}
+
+html.dark .results-head select {
+  background: #141e35;
+  border: 1px solid #203050;
+  color: #f8fafc;
+}
+
+/* KPI, Cards, & Metrics */
+html.dark .kpi-card,
+html.dark .job-card,
+html.dark .candidate-card,
+html.dark .course-card {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .kpi-card strong,
+html.dark .job-card h3,
+html.dark .candidate-head h3,
+html.dark .course-content h3 {
+  color: #f8fafc;
+}
+
+html.dark .candidate-score {
+  background: #15213b;
+}
+
+html.dark .candidate-meta {
+  border-block: 1px solid #1e293b;
+}
+
+html.dark .candidate-meta span {
+  border-right: 1px solid #1e293b;
+  color: #94a3b8;
+}
+
+html.dark .candidate-meta strong {
+  color: #f8fafc;
+}
+
+/* Tabs */
+html.dark .tabs {
+  background: #131d33;
+}
+
+html.dark .tabs button {
+  color: #94a3b8;
+}
+
+html.dark .tabs button.active {
+  background: #1f2d4d;
+  color: #829aff;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.3);
+}
+
+/* Score Rings & Progress */
+html.dark .score-ring::before,
+html.dark .pipeline-ring::before {
+  background: #111a2e;
+}
+
+html.dark .score-ring strong,
+html.dark .pipeline-ring strong {
+  color: #ffffff;
+}
+
+html.dark .score-ring span,
+html.dark .pipeline-ring span {
+  color: #94a3b8;
+}
+
+html.dark .progress {
+  background: #1b263d;
+}
+
+/* Explanations & Alerts */
+html.dark .explain,
+html.dark .match-explain {
+  background: #19203c;
+  color: #b7a9ff;
+  border: 1px solid #2a335a;
+}
+
+html.dark .explain p,
+html.dark .match-explain p {
+  color: #cbd5e1;
+}
+
+html.dark .gap-card .warning-icon,
+html.dark .warning-icon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+html.dark .gap-summary {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .gap-summary strong {
+  color: #f8fafc;
+}
+
+html.dark .gap-analysis {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .gap-name h3 {
+  color: #f8fafc;
+}
+
+html.dark .compare-bars b {
+  color: #f8fafc;
+}
+
+html.dark .gap-action {
+  border-left: 1px solid #1e293b;
+}
+
+html.dark .action-card {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .action-card h3 {
+  color: #f8fafc;
+}
+
+/* Evidence & Project Cards */
+html.dark .evidence-card {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .evidence-top h3 {
+  color: #f8fafc;
+}
+
+html.dark .evidence-grid {
+  border-block: 1px solid #1e293b;
+}
+
+html.dark .evidence-grid > div {
+  border-right: 1px solid #1e293b;
+}
+
+html.dark .evidence-grid strong {
+  color: #f8fafc;
+}
+
+html.dark .project-card h3 {
+  color: #f8fafc;
+}
+
+html.dark .project-card > div:last-child {
+  background: #111a2e;
+}
+
+html.dark .project-meta span {
+  color: #f8fafc;
+}
+
+/* Assessment Page */
+html.dark .question-card {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .question-card h2 {
+  color: #f8fafc;
+}
+
+html.dark .answers button {
+  background: #141e35;
+  border: 1px solid #203050;
+  color: #e2e8f0;
+}
+
+html.dark .answers button > span {
+  background: #1a253e;
+  color: #94a3b8;
+}
+
+html.dark .answers button.selected {
+  background: #1a2a4e;
+  border-color: #436cd9;
+  color: #ffffff;
+}
+
+html.dark .answers button.selected > span {
+  background: #436cd9;
+  color: #ffffff;
+}
+
+html.dark .question-nav {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .question-nav h3 {
+  color: #f8fafc;
+}
+
+html.dark .question-nav > div span {
+  background: #17223b;
+  color: #94a3b8;
+}
+
+html.dark .question-nav > p b {
+  color: #f8fafc;
+}
+
+html.dark .result-card {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .result-card h2 {
+  color: #f8fafc;
+}
+
+html.dark .result-stats {
+  border-block: 1px solid #1e293b;
+}
+
+html.dark .result-stats > div {
+  border-right: 1px solid #1e293b;
+}
+
+html.dark .result-stats strong {
+  color: #f8fafc;
+}
+
+/* Resume & ATS Analysis */
+html.dark .resume-uploader {
+  background: #0f172a;
+  border-color: #253658;
+  color: #829aff;
+}
+
+html.dark .resume-uploader strong {
+  color: #f8fafc;
+}
+
+html.dark .uploaded-file {
+  background: #141e35;
+  border: 1px solid #203050;
+}
+
+html.dark .uploaded-file strong {
+  color: #f8fafc;
+}
+
+html.dark .resume-analysis {
+  background: #121c32;
+  border: 1px solid #253658;
+}
+
+html.dark .analysis-columns > div {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+}
+
+html.dark .analysis-columns h4 {
+  color: #f8fafc;
+}
+
+html.dark .resume-doc-sheet {
+  background: #0f172a;
+  border: 1px solid #203050;
+  color: #e2e8f0;
+}
+
+html.dark .resume-doc-sheet-header h2 {
+  color: #f8fafc;
+}
+
+/* Career Recommendations */
+html.dark .career-search-hero {
+  background: radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15), transparent 40%), #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .career-search-title {
+  color: #f8fafc;
+}
+
+html.dark .career-search-subtitle {
+  color: #94a3b8;
+}
+
+html.dark .career-recommendations-page .career-search-input-box {
+  background: #0f172a;
+  border-color: #233557;
+}
+
+html.dark .career-recommendations-page .career-search-input-box input {
+  color: #f8fafc;
+}
+
+html.dark .career-recommendations-page .career-autocomplete-dropdown {
+  background: #111a2e;
+  border: 1px solid #233557;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .career-goal-chip {
+  background: #141e35;
+  border: 1px solid #203050;
+  color: #cbd5e1;
+}
+
+html.dark .career-goal-chip:hover {
+  background: #1c2b4d;
+  color: #ffffff;
+  border-color: #3b5fbf;
+}
+
+html.dark .career-goal-chip.current {
+  background: #1c2b4d;
+  color: #829aff;
+  border-color: #436cd9;
+}
+
+html.dark .target-career-banner {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .target-career-name {
+  color: #f8fafc;
+}
+
+html.dark .target-career-desc {
+  color: #94a3b8;
+}
+
+html.dark .target-career-details-row b {
+  color: #f8fafc;
+}
+
+html.dark .step-card {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .step-card h4 {
+  color: #f8fafc;
+}
+
+html.dark .step-card p {
+  color: #94a3b8;
+}
+
+html.dark .project-brief-checklist li {
+  background: #0f172a;
+  color: #cbd5e1;
+  border: 1px solid #1e293b;
+}
+
+/* Settings, Notifications, & Dialogs */
+html.dark .settings-toggle-card {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .settings-toggle-card strong {
+  color: #f8fafc;
+}
+
+html.dark .settings-toggle-card small {
+  color: #94a3b8;
+}
+
+html.dark .settings-field-group label {
+  color: #cbd5e1;
+}
+
+html.dark .settings-tab-btn {
+  color: #94a3b8;
+}
+
+html.dark .settings-tab-btn:hover {
+  color: #ffffff;
+}
+
+html.dark .settings-tab-btn.active {
+  color: #829aff;
+  border-color: #829aff;
+}
+
+html.dark .notification-list > button {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+  color: #e2e8f0;
+}
+
+html.dark .notification-list > button.unread {
+  background: #16213c;
+  border-color: #283758;
+}
+
+html.dark .notification-list > button strong {
+  color: #f8fafc;
+}
+
+html.dark .notification-list > button p {
+  color: #94a3b8;
+}
+
+html.dark .matched-student-card {
+  background: #111a2e;
+  border: 1px solid #1e293b;
+}
+
+html.dark .matched-student-card h3 {
+  color: #f8fafc;
+}
+
+html.dark .opp-selector-pill {
+  background: #141e35;
+  border: 1px solid #203050;
+  color: #cbd5e1;
+}
+
+html.dark .opp-selector-pill.active {
+  background: #1c2b4d;
+  border-color: #436cd9;
+  color: #ffffff;
+}
+

@@ -21,6 +21,7 @@ import {
   Legend,
 } from "recharts";
 import logoImg from "./assets/logo.png";
+import { useTheme } from "./theme";
 import ProfileWorkspace from "./ProfileWorkspace";
 import Assessments from "./Assessments";
 import Opportunities from "./Opportunities";
@@ -86,7 +87,9 @@ type IconName =
   | "plus"
   | "file"
   | "download"
-  | "mail";
+  | "mail"
+  | "sun"
+  | "moon";
 
 const roleConfig = {
   student: {
@@ -166,6 +169,8 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
     file: <><path d="M6 2h8l4 4v16H6zM14 2v5h5M9 13h6m-6 4h6" /></>,
     download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></>,
     mail: <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></>,
+    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41m14.14-14.14-1.41 1.41" /></>,
+    moon: <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />,
   };
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
@@ -178,6 +183,7 @@ function Button({
   className = "",
   disabled = false,
   style,
+  title,
 }: {
   children: ReactNode;
   variant?: "primary" | "secondary" | "ghost" | "dark";
@@ -186,8 +192,9 @@ function Button({
   className?: string;
   disabled?: boolean;
   style?: React.CSSProperties;
+  title?: string;
 }) {
-  return <button type={type} onClick={onClick} disabled={disabled} style={style} className={`btn btn-${variant} ${className}`}>{children}</button>;
+  return <button type={type} onClick={onClick} disabled={disabled} style={style} title={title} className={`btn btn-${variant} ${className}`}>{children}</button>;
 }
 
 function Logo({ dark = false }: { dark?: boolean }) {
@@ -205,7 +212,7 @@ function Badge({ children, tone = "blue", style }: { children: ReactNode; tone?:
   return <span className={`badge badge-${tone}`} style={style}>{children}</span>;
 }
 
-function Progress({ value, tone = "blue" }: { value: number; tone?: "blue" | "green" | "orange" | "red" }) {
+function Progress({ value, tone = "blue" }: { value: number; tone?: "blue" | "green" | "orange" | "red" | "purple" }) {
   return <div className="progress"><span className={`fill ${tone}`} style={{ width: `${value}%` }} /></div>;
 }
 
@@ -226,9 +233,31 @@ function MiniChart({ values, labels, color = "blue" }: { values: number[]; label
 }
 
 function Landing({ navigate }: { navigate: (path: string) => void }) {
+  const { isDark, toggleTheme } = useTheme();
   const features = ["Skill Assessment", "Verified Skill Evidence", "Industry Readiness Score", "AI Skill Gap Analysis", "Intelligent Job Matching", "College Skill Analytics"];
   return <div className="landing">
-    <div className="public-nav-wrapper"><nav className="public-nav"><Logo dark /><div className="public-links"><a href="#how">How it works</a><a href="#features">Features</a><a href="#ecosystem">Ecosystem</a></div><Button onClick={() => navigate("/login")}>Sign in <Icon name="arrow" size={16} /></Button></nav></div>
+    <div className="public-nav-wrapper">
+      <nav className="public-nav">
+        <Logo dark />
+        <div className="public-links">
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#ecosystem">Ecosystem</a>
+        </div>
+        <div className="public-nav-actions">
+          <button
+            type="button"
+            className={`icon-btn theme-toggle-btn ${isDark ? "is-dark" : "is-light"}`}
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            onClick={toggleTheme}
+          >
+            <Icon name={isDark ? "sun" : "moon"} size={17} />
+          </button>
+          <Button onClick={() => navigate("/login")}>Sign in <Icon name="arrow" size={16} /></Button>
+        </div>
+      </nav>
+    </div>
     <main>
       <section className="hero">
         <div className="hero-copy">
@@ -286,6 +315,7 @@ function Login({ navigate, initialRole }: { navigate: (path: string) => void; in
 }
 
 function AppShell({ role, page, navigate, logout }: { role: Role; page: string; navigate: (p: string) => void; logout: () => void }) {
+  const { isDark, toggleTheme } = useTheme();
   const [menu, setMenu] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -431,10 +461,23 @@ function AppShell({ role, page, navigate, logout }: { role: Role; page: string; 
         </div>
       )}
 
-      <div className="side-bottom"><button onClick={() => { closeSidebar(); setSettingsOpen(true); }}><Icon name="settings" /> Settings</button><button onClick={logout}><Icon name="logout" /> Sign out</button></div>
+      <div className="side-bottom">
+        <button
+          type="button"
+          className="theme-toggle-side-btn"
+          onClick={toggleTheme}
+          title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          <Icon name={isDark ? "sun" : "moon"} />
+          <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
+          <span className="theme-pill-badge">{isDark ? "Dark" : "Light"}</span>
+        </button>
+        <button onClick={() => { closeSidebar(); setSettingsOpen(true); }}><Icon name="settings" /> Settings</button>
+        <button onClick={logout}><Icon name="logout" /> Sign out</button>
+      </div>
     </aside>
     {menu && <div className="scrim" onClick={closeSidebar} />}
-    <main className="app-main"><header><div><button aria-label="Open navigation" aria-expanded={menu} aria-controls="workspace-navigation" className={`menu-btn ${menu ? "menu-open" : ""}`} onMouseEnter={handleMenuHoverEnter} onMouseLeave={handleMenuHoverLeave} onClick={() => { cancelCloseTimeout(); setMenu(prev => { const next = !prev; setIsPinned(next); return next; }); }}><span className="menu-lines" aria-hidden="true"><span className="menu-line line-1" /><span className="menu-line line-2" /><span className="menu-line line-3" /></span></button><div><small>{config.label} portal</small><h1>{page === "dashboard" ? "Dashboard" : titles[page] || "Dashboard"}</h1></div></div><div className="header-tools"><button aria-label="Search workspace" className="search-box" onClick={() => setSearchOpen(true)}><Icon name="search" /><span>Search anything...</span><kbd>⌘ K</kbd></button><button className="icon-btn notification-trigger" aria-label={`Open notifications, ${notices.filter(item => !item.read).length} unread`} onClick={() => setNotificationsOpen(true)}><Icon name="bell" />{notices.some(item => !item.read) && <i />}</button><div className="user-chip"><span>{config.initials}</span><div><strong>{config.name}</strong><small>{config.label}</small></div></div></div></header>
+    <main className="app-main"><header><div><button aria-label="Open navigation" aria-expanded={menu} aria-controls="workspace-navigation" className={`menu-btn ${menu ? "menu-open" : ""}`} onMouseEnter={handleMenuHoverEnter} onMouseLeave={handleMenuHoverLeave} onClick={() => { cancelCloseTimeout(); setMenu(prev => { const next = !prev; setIsPinned(next); return next; }); }}><span className="menu-lines" aria-hidden="true"><span className="menu-line line-1" /><span className="menu-line line-2" /><span className="menu-line line-3" /></span></button><div><small>{config.label} portal</small><h1>{page === "dashboard" ? "Dashboard" : titles[page] || "Dashboard"}</h1></div></div><div className="header-tools"><button aria-label="Search workspace" className="search-box" onClick={() => setSearchOpen(true)}><Icon name="search" /><span>Search anything...</span><kbd>⌘ K</kbd></button><button type="button" className={`icon-btn theme-toggle-btn ${isDark ? "is-dark" : "is-light"}`} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} title={isDark ? "Switch to light mode" : "Switch to dark mode"} onClick={toggleTheme}><Icon name={isDark ? "sun" : "moon"} size={17} /></button><button className="icon-btn notification-trigger" aria-label={`Open notifications, ${notices.filter(item => !item.read).length} unread`} onClick={() => setNotificationsOpen(true)}><Icon name="bell" />{notices.some(item => !item.read) && <i />}</button><div className="user-chip"><span>{config.initials}</span><div><strong>{config.name}</strong><small>{config.label}</small></div></div></div></header>
       <div className="app-content">{role === "student" ? <StudentPages page={page} navigate={navigate} /> : role === "industry" ? <IndustryPages page={page} navigate={navigate} /> : <CollegePages page={page} navigate={navigate} />}</div>
     </main>
     {searchOpen && <WorkspaceSearch role={role} navigate={navigate} close={() => setSearchOpen(false)} />}
@@ -625,7 +668,8 @@ function SettingsModal({ role, close }: { role: Role; close: () => void }) {
   const [instantAlerts, setInstantAlerts] = useState<boolean>(storedSettings.instantAlerts ?? true);
   const [soundAlerts, setSoundAlerts] = useState<boolean>(storedSettings.soundAlerts ?? false);
 
-  const [themeMode, setThemeMode] = useState<string>(storedSettings.themeMode || "light");
+  const { theme, setTheme } = useTheme();
+  const [themeMode, setThemeMode] = useState<string>(theme || storedSettings.themeMode || "light");
   const [compactMode, setCompactMode] = useState<boolean>(storedSettings.compactMode || false);
   const [defaultLanding, setDefaultLanding] = useState<string>(storedSettings.defaultLanding || "dashboard");
 
@@ -640,6 +684,11 @@ function SettingsModal({ role, close }: { role: Role; close: () => void }) {
     if (role === "student") {
       const existing = readStored("skillimprove-profile", {});
       saveStored("skillimprove-profile", { ...existing, name, email, college: org, about: bio });
+    }
+    if (themeMode === "dark") {
+      setTheme("dark");
+    } else {
+      setTheme("light");
     }
     const data = {
       name, email, org, headline, bio,
@@ -772,7 +821,14 @@ function SettingsModal({ role, close }: { role: Role; close: () => void }) {
           <div className="settings-section">
             <div className="settings-field-group">
               <label>Interface Theme</label>
-              <select value={themeMode} onChange={e => setThemeMode(e.target.value)}>
+              <select
+                value={themeMode}
+                onChange={e => {
+                  const val = e.target.value;
+                  setThemeMode(val);
+                  setTheme(val === "dark" ? "dark" : "light");
+                }}
+              >
                 <option value="light">Light Mode (Default)</option>
                 <option value="dark">Dark Slate</option>
                 <option value="contrast">High Contrast Mode</option>
@@ -1822,7 +1878,7 @@ function Applications({ role, onContactCandidate }: { role: "student" | "industr
       if (applicant) {
         toggleShortlistCandidate({
           name: applicant.name,
-          email: applicant.studentEmail || candidateEmailDirectory[applicant.name] || `${applicant.name.toLowerCase().replace(/\s+/g, ".")}@student.apex.edu`,
+          email: (applicant as any).studentEmail || candidateEmailDirectory[applicant.name] || `${applicant.name.toLowerCase().replace(/\s+/g, ".")}@student.apex.edu`,
           role: applicant.role,
           company: applicant.company,
           college: applicant.college,
@@ -1972,7 +2028,7 @@ function Applications({ role, onContactCandidate }: { role: "student" | "industr
                         if (onContactCandidate) {
                           onContactCandidate({
                             name: applicant.name,
-                            email: applicant.studentEmail || candidateEmailDirectory[applicant.name] || `${applicant.name.toLowerCase().replace(/\s+/g, ".")}@student.apex.edu`,
+                            email: (applicant as any).studentEmail || candidateEmailDirectory[applicant.name] || `${applicant.name.toLowerCase().replace(/\s+/g, ".")}@student.apex.edu`,
                             role: applicant.role,
                             company: applicant.company,
                             college: applicant.college,
@@ -4540,6 +4596,7 @@ function StudentManagement({ navigate }: { navigate: (p: string) => void }) {
 }
 
 export default function App() {
+  useTheme();
   const [path, setPath] = useState(window.location.pathname + window.location.search);
   useEffect(() => {
     const handler = () => setPath(window.location.pathname + window.location.search);

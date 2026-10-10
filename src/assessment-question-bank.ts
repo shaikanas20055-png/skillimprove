@@ -1,4 +1,5 @@
-import { AssessmentQuestion, DifficultyLevel } from "./assessment-roles";
+import type { AssessmentQuestion, DifficultyLevel } from "./assessment-roles";
+export type { AssessmentQuestion, DifficultyLevel } from "./assessment-roles";
 
 /**
  * Normalizes answer for fair, intelligent evaluation of fill-in-the-blank responses:
@@ -29,13 +30,13 @@ export function evaluateAnswer(question: AssessmentQuestion, studentAnswer?: str
 
   if (question.type === "multiple-choice") {
     return question.acceptedAnswers.some(
-      (ans) => normalizeAnswer(ans) === normalizedStudent
+      (ans: string) => normalizeAnswer(ans) === normalizedStudent
     );
   }
 
   // Fill in the blank / code output / debugging / scenario:
   // Check exact normalized match against accepted answers
-  const isDirectMatch = question.acceptedAnswers.some((accepted) => {
+  const isDirectMatch = question.acceptedAnswers.some((accepted: string) => {
     const normAccepted = normalizeAnswer(accepted);
     if (normAccepted === normalizedStudent) return true;
 
