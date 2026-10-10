@@ -17,6 +17,11 @@
 *.ai                 filter=lfs diff=lfs merge=lfs -text
 *.sketch             filter=lfs diff=lfs merge=lfs -text
 
+# Exempt web icons, favicons and app logos from Git LFS so Vercel can serve real images
+public/**            !filter !diff !merge -text
+src/assets/**        !filter !diff !merge -text
+*.svg                text
+
 # ---------------------------------------------------------------------------
 # Video
 # ---------------------------------------------------------------------------

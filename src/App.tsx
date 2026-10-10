@@ -207,8 +207,13 @@ function Logo({ dark = false }: { dark?: boolean }) {
           className="logo-img"
           onError={(e) => {
             const target = e.currentTarget;
+            if (target.src.endsWith("/logo.svg")) {
+              return;
+            }
             if (!target.src.endsWith("/logo.png")) {
               target.src = "/logo.png";
+            } else {
+              target.src = "/logo.svg";
             }
           }}
         />
