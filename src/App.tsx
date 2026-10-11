@@ -1131,7 +1131,7 @@ function Login({
       </div>
 
       <div className="login-brand">
-        <Logo dark />
+        <Logo dark={isDark} />
         <div className="login-message">
           <Badge tone="blue">
             <Icon name="spark" size={14} /> Skill intelligence platform
