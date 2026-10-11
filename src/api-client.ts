@@ -5,9 +5,19 @@ export const API_BASE =
   (import.meta as any).env?.VITE_API_URL ||
   ((import.meta as any).env?.PROD ? "/api" : "http://localhost:3001/api");
 
+function getAuthHeaders(): HeadersInit {
+  const token = typeof window !== "undefined" ? localStorage.getItem("skill-token") : null;
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 export async function fetchProfile(email: string = "alex.johnson@example.com") {
   try {
-    const res = await fetch(`${API_BASE}/profile?email=${encodeURIComponent(email)}`);
+    const res = await fetch(`${API_BASE}/profile?email=${encodeURIComponent(email)}`, {
+      headers: getAuthHeaders(),
+    });
     if (!res.ok) throw new Error("Network response was not ok");
     return await res.json();
   } catch (err) {
@@ -18,7 +28,9 @@ export async function fetchProfile(email: string = "alex.johnson@example.com") {
 
 export async function fetchAnalytics() {
   try {
-    const res = await fetch(`${API_BASE}/analytics`);
+    const res = await fetch(`${API_BASE}/analytics`, {
+      headers: getAuthHeaders(),
+    });
     if (!res.ok) throw new Error("Network response was not ok");
     return await res.json();
   } catch (err) {
@@ -29,7 +41,9 @@ export async function fetchAnalytics() {
 
 export async function fetchOpportunities() {
   try {
-    const res = await fetch(`${API_BASE}/opportunities`);
+    const res = await fetch(`${API_BASE}/opportunities`, {
+      headers: getAuthHeaders(),
+    });
     if (!res.ok) throw new Error("Network response was not ok");
     return await res.json();
   } catch (err) {
@@ -47,7 +61,7 @@ export async function submitAssessmentAnswers(payload: {
   try {
     const res = await fetch(`${API_BASE}/assessments/submit`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error("Failed to submit assessment");
@@ -62,7 +76,7 @@ export async function requestSkillGapAnalysis(currentSkills: string[], targetRol
   try {
     const res = await fetch(`${API_BASE}/ai/skill-gap-analysis`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ currentSkills, targetRole }),
     });
     if (!res.ok) throw new Error("Failed to request AI gap analysis");

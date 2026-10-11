@@ -1,9 +1,25 @@
 import { NextResponse } from "next/server";
+import { matchExplainerSchema, safeValidate } from "@/lib/validation";
+import { genericErrorResponse, validationErrorResponse } from "@/lib/errors";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { candidateName = "Alex Johnson", roleTitle = "Frontend Engineer", candidateSkills = ["React", "JavaScript"], jobSkills = ["React", "TypeScript", "Tailwind CSS"] } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return validationErrorResponse("Invalid JSON payload.");
+    }
+
+    // Server-Side Validation
+    const validation = safeValidate(matchExplainerSchema, body);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
+
+    const { candidateName = "Candidate", roleTitle = "Software Engineer" } = validation.data;
+    const candidateSkills = validation.data.candidateSkills || [];
+    const jobSkills = validation.data.jobSkills || [];
 
     const matched = candidateSkills.filter((s: string) => jobSkills.includes(s));
     const missing = jobSkills.filter((s: string) => !candidateSkills.includes(s));
@@ -17,11 +33,11 @@ export async function POST(request: Request) {
         overallMatch: score,
         matchedSkills: matched,
         unmatchedSkills: missing,
-        summary: `${candidateName} has verified foundation in ${matched.join(", ")}. Upskilling in ${missing.join(", ")} will bring candidate to a 95%+ match.`,
+        summary: `${candidateName} has verified foundation in ${matched.join(", ") || "core fundamentals"}. Upskilling in ${missing.join(", ") || "specialized frameworks"} will bring candidate to a 95%+ match.`,
         recommendation: score >= 80 ? "High Priority for Technical Interview" : "Recommend Preliminary Skill Assessment",
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+  } catch (error: unknown) {
+    return genericErrorResponse("POST /api/ai/match-explainer", error);
   }
 }

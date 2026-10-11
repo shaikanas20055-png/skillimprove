@@ -1,12 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { assessmentSubmitSchema, safeValidate } from "@/lib/validation";
+import { genericErrorResponse, validationErrorResponse, logServerError } from "@/lib/errors";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { userId, assessmentId, answers, score: clientScore } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return validationErrorResponse("Invalid JSON payload.");
+    }
 
-    // Calculate score or verify against DB questions if available
+    // 1. Server-Side Validation
+    const validation = safeValidate(assessmentSubmitSchema, body);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
+
+    const { userId, assessmentId, answers, score: clientScore } = validation.data;
+
     let score = clientScore ?? 85;
     let passed = score >= 70;
 
@@ -35,7 +48,7 @@ export async function POST(request: Request) {
               assessmentId,
               score,
               passed,
-              answersJson: answers,
+              answersJson: JSON.stringify(answers),
             },
           });
 
@@ -51,7 +64,7 @@ export async function POST(request: Request) {
         }
       }
     } catch (dbErr) {
-      console.warn("DB submission write skipped:", dbErr);
+      logServerError("AssessmentSubmissionDb", dbErr);
     }
 
     return NextResponse.json({
@@ -63,7 +76,7 @@ export async function POST(request: Request) {
         ? `Congratulations! You scored ${score}% and verified this skill badge.`
         : `You scored ${score}%. Passing grade is 70%. Try again after reviewing the learning modules.`,
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+  } catch (error: unknown) {
+    return genericErrorResponse("POST /api/assessments/submit", error);
   }
 }

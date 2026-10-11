@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { opportunityCreateSchema, safeValidate } from "@/lib/validation";
+import { genericErrorResponse, validationErrorResponse, logServerError } from "@/lib/errors";
 
 export async function GET() {
   try {
@@ -69,15 +71,28 @@ export async function GET() {
         description: "Fine-tune models, design vector retrieval workflows, and evaluate automated pipelines.",
       },
     ]);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    logServerError("GET /api/opportunities", error);
     return NextResponse.json([], { status: 200 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { title, company, location, type, salary, skills, description } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return validationErrorResponse("Invalid JSON payload.");
+    }
+
+    // Server-Side Validation
+    const validation = safeValidate(opportunityCreateSchema, body);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
+
+    const { title, company, location, type, salary, skills, description } = validation.data;
 
     const skillsString = Array.isArray(skills)
       ? JSON.stringify(skills)
@@ -87,13 +102,13 @@ export async function POST(request: Request) {
 
     const newJob = await prisma.opportunity.create({
       data: {
-        title: title || "Software Engineer",
-        company: company || "Hiring Partner",
+        title,
+        company,
         location: location || "Remote",
         type: type || "Full-time",
         salary: salary || "Competitive",
         skills: skillsString,
-        description: description || "Join our engineering team.",
+        description: description || "Exciting engineering role",
         matchWeight: 90,
       },
     });
@@ -105,7 +120,7 @@ export async function POST(request: Request) {
         skills: Array.isArray(skills) ? skills : [skillsString],
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+  } catch (error: unknown) {
+    return genericErrorResponse("POST /api/opportunities", error);
   }
 }

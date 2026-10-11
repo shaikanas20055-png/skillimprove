@@ -66,6 +66,12 @@ import {
 } from "./app-data";
 import { CandidateFilters, filterCandidates } from "./candidate-data";
 import { evaluateResumeFile, evaluateResumeText, ResumeAnalysisResult } from "./resume-evaluator";
+import {
+  authenticateWithFirebaseOrBackend,
+  registerWithFirebase,
+  logoutFirebase,
+  isFirebaseConfigured,
+} from "./lib/firebase";
 
 type Role = "student" | "industry" | "college";
 type IconName =
@@ -89,7 +95,8 @@ type IconName =
   | "download"
   | "mail"
   | "sun"
-  | "moon";
+  | "moon"
+  | "lock";
 
 const roleConfig = {
   student: {
@@ -171,6 +178,7 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
     mail: <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></>,
     sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41m14.14-14.14-1.41 1.41" /></>,
     moon: <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />,
+    lock: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>,
   };
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
@@ -314,19 +322,249 @@ function Login({ navigate, initialRole }: { navigate: (path: string) => void; in
   const [role, setRole] = useState<Role>(initialRole);
   const [email, setEmail] = useState(roleConfig[role].email);
   const [password, setPassword] = useState(roleConfig[role].password);
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
   const [error, setError] = useState("");
-  const selectRole = (next: Role) => { setRole(next); setEmail(roleConfig[next].email); setPassword(roleConfig[next].password); setError(""); };
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (email === roleConfig[role].email && password === roleConfig[role].password) {
-      localStorage.setItem("skill-role", role);
-      navigate(`/${role}/dashboard`);
-    } else setError(`Use the demo ${roleConfig[role].label.toLowerCase()} credentials shown below.`);
+  const [loading, setLoading] = useState(false);
+  const [retrySeconds, setRetrySeconds] = useState(0);
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+
+  // Rate limit lockout countdown
+  useEffect(() => {
+    if (retrySeconds <= 0) return;
+    const interval = setInterval(() => {
+      setRetrySeconds((prev) => {
+        if (prev <= 1) {
+          setError("");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [retrySeconds]);
+
+  const selectRole = (next: Role) => {
+    setRole(next);
+    setEmail(roleConfig[next].email);
+    setPassword(roleConfig[next].password);
+    setError("");
+    setRemainingAttempts(null);
   };
-  return <div className="login-page">
-    <div className="login-brand"><Logo dark /><div className="login-message"><Badge tone="blue"><Icon name="spark" size={14} /> Skill intelligence platform</Badge><h1>Skills should be<br /><span>seen, proven, valued.</span></h1><p>A single platform where students build evidence, companies discover capability and colleges improve outcomes.</p><div className="login-points"><span><Icon name="check" /> Verified skill evidence</span><span><Icon name="check" /> Explainable readiness scoring</span><span><Icon name="check" /> AI-powered recommendations</span></div></div><div className="brand-orbit"><div><span>S</span><span>I</span><span>C</span></div></div></div>
-    <div className="login-panel"><div className="login-mobile-logo"><Logo /></div><div className="login-box"><span className="eyebrow">WELCOME TO SKILLIMPROVE</span><h2>Sign in to your workspace</h2><p>Select your role to continue with demo credentials.</p><div className="role-tabs">{(["student", "industry", "college"] as Role[]).map(r => <button key={r} className={role === r ? "active" : ""} onClick={() => selectRole(r)}><Icon name={r === "student" ? "user" : r === "industry" ? "briefcase" : "building"} />{roleConfig[r].label}</button>)}</div><form onSubmit={submit}><label>Email address<input value={email} onChange={e => setEmail(e.target.value)} type="email" /></label><label>Password<input value={password} onChange={e => setPassword(e.target.value)} type="password" /></label>{error && <div className="form-error">{error}</div>}<Button type="submit" className="full">Sign in as {roleConfig[role].label} <Icon name="arrow" /></Button></form><div className="demo-note"><Icon name="check" /><div><strong>Demo credentials pre-filled</strong><small>{roleConfig[role].email} · {roleConfig[role].password}</small></div></div><button className="back-link" onClick={() => navigate("/")}><Icon name="arrow" /> Back to SkillImprove</button></div></div>
-  </div>;
+
+  const formatCountdown = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (retrySeconds > 0) return;
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !trimmedEmail.includes("@")) {
+      setError("Please provide a valid email address.");
+      return;
+    }
+    if (!password || password.length < 6) {
+      setError("Password must contain at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      if (authMode === "signup") {
+        const res = await registerWithFirebase(trimmedEmail, password, role);
+        if (res.success) {
+          localStorage.setItem("skill-role", role);
+          navigate(`/${role}/dashboard`);
+        } else {
+          setError(res.error || "Unable to register account. Please check your information.");
+        }
+      } else {
+        const res = await authenticateWithFirebaseOrBackend(trimmedEmail, password, role);
+        if (res.success) {
+          localStorage.setItem("skill-role", role);
+          navigate(`/${role}/dashboard`);
+        } else {
+          if (res.retryAfterSeconds && res.retryAfterSeconds > 0) {
+            setRetrySeconds(res.retryAfterSeconds);
+          }
+          if (res.remainingAttempts !== undefined) {
+            setRemainingAttempts(res.remainingAttempts);
+          }
+          // Generic error message: NEVER leak if user exists or password is wrong
+          setError(res.error || "Invalid email or password. Please verify your credentials.");
+        }
+      }
+    } catch {
+      setError("An unexpected authentication error occurred. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="login-page">
+      <div className="login-brand">
+        <Logo dark />
+        <div className="login-message">
+          <Badge tone="blue">
+            <Icon name="spark" size={14} /> Skill intelligence platform
+          </Badge>
+          <h1>
+            Skills should be<br />
+            <span>seen, proven, valued.</span>
+          </h1>
+          <p>A single platform where students build evidence, companies discover capability and colleges improve outcomes.</p>
+          <div className="login-points">
+            <span><Icon name="check" /> Verified skill evidence</span>
+            <span><Icon name="check" /> Explainable readiness scoring</span>
+            <span><Icon name="check" /> AI-powered recommendations</span>
+          </div>
+        </div>
+        <div className="brand-orbit">
+          <div>
+            <span>S</span>
+            <span>I</span>
+            <span>C</span>
+          </div>
+        </div>
+      </div>
+      <div className="login-panel">
+        <div className="login-mobile-logo">
+          <Logo />
+        </div>
+        <div className="login-box">
+          <div className="security-status-badge">
+            <Icon name="lock" size={13} />
+            {isFirebaseConfigured ? "Firebase Auth & Rate Limiting Protected" : "Protected by Server-Side Validation & Rate Limiting"}
+          </div>
+          <span className="eyebrow">WELCOME TO SKILLIMPROVE</span>
+          <h2>{authMode === "signin" ? "Sign in to your workspace" : "Create your account"}</h2>
+          <p>{authMode === "signin" ? "Select your role to continue with credentials." : "Register to start your skill verification journey."}</p>
+
+          <div className="login-subtabs">
+            <button
+              type="button"
+              className={authMode === "signin" ? "active" : ""}
+              onClick={() => { setAuthMode("signin"); setError(""); }}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              className={authMode === "signup" ? "active" : ""}
+              onClick={() => { setAuthMode("signup"); setError(""); }}
+            >
+              Create Account
+            </button>
+          </div>
+
+          <div className="role-tabs">
+            {(["student", "industry", "college"] as Role[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                className={role === r ? "active" : ""}
+                onClick={() => selectRole(r)}
+              >
+                <Icon name={r === "student" ? "user" : r === "industry" ? "briefcase" : "building"} />
+                {roleConfig[r].label}
+              </button>
+            ))}
+          </div>
+
+          {retrySeconds > 0 && (
+            <div className="rate-limit-banner">
+              <strong style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <Icon name="lock" size={14} /> Account Locked Temporarily
+              </strong>
+              <span>Too many failed login attempts detected. To safeguard your account, further attempts are temporarily paused.</span>
+              <div className="rate-limit-countdown">
+                <Icon name="spark" size={13} /> Retrying available in: {formatCountdown(retrySeconds)}
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={submit}>
+            <label>
+              Email address
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                required
+                disabled={retrySeconds > 0 || loading}
+                placeholder="name@example.com"
+                autoComplete="email"
+              />
+            </label>
+            <label>
+              Password
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                required
+                disabled={retrySeconds > 0 || loading}
+                placeholder="••••••••"
+                autoComplete={authMode === "signin" ? "current-password" : "new-password"}
+              />
+            </label>
+            {error && <div className="form-error">{error}</div>}
+            {remainingAttempts !== null && remainingAttempts > 0 && remainingAttempts <= 3 && !error.includes("Locked") && (
+              <div style={{ fontSize: 11, color: "#d97706", marginBottom: 12, display: "flex", alignItems: "center", gap: 5 }}>
+                <Icon name="lock" size={12} /> {remainingAttempts} login attempt{remainingAttempts > 1 ? "s" : ""} remaining before temporary security lockout.
+              </div>
+            )}
+            <Button
+              type="submit"
+              className="full"
+              disabled={retrySeconds > 0 || loading}
+            >
+              {loading ? (
+                "Authenticating..."
+              ) : (
+                <>
+                  {authMode === "signin" ? `Sign in as ${roleConfig[role].label}` : `Create ${roleConfig[role].label} Account`} <Icon name="arrow" />
+                </>
+              )}
+            </Button>
+          </form>
+
+          <div className="demo-note">
+            <Icon name="check" />
+            <div style={{ flex: 1 }}>
+              <strong>Demo credentials pre-filled</strong>
+              <small>{roleConfig[role].email} · {roleConfig[role].password}</small>
+            </div>
+            <button
+              type="button"
+              onClick={() => selectRole(role)}
+              style={{
+                border: "none",
+                background: "rgba(255,255,255,0.7)",
+                borderRadius: 6,
+                padding: "3px 8px",
+                fontSize: 10,
+                fontWeight: 700,
+                cursor: "pointer",
+                color: "var(--green)",
+              }}
+            >
+              Reset
+            </button>
+          </div>
+          <button className="back-link" onClick={() => navigate("/")}>
+            <Icon name="arrow" /> Back to SkillImprove
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function AppShell({ role, page, navigate, logout }: { role: Role; page: string; navigate: (p: string) => void; logout: () => void }) {
@@ -4633,7 +4871,7 @@ export default function App() {
     return () => window.removeEventListener("popstate", handler);
   }, []);
   const navigate = (next: string) => { window.history.pushState({}, "", next); setPath(next); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const logout = () => { localStorage.removeItem("skill-role"); navigate("/login"); };
+  const logout = () => { logoutFirebase(); navigate("/login"); };
   const pathname = path.split("?")[0];
   if (pathname === "/") return <Landing navigate={navigate} />;
   if (pathname === "/login") {

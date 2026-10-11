@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logServerError } from "@/lib/errors";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const minReadiness = parseInt(searchParams.get("minReadiness") || "0");
-    const skillFilter = searchParams.get("skill");
+    const parsedMin = parseInt(searchParams.get("minReadiness") || "0", 10);
+    const minReadiness = Number.isNaN(parsedMin) ? 0 : Math.max(0, Math.min(100, parsedMin));
+    const rawSkill = searchParams.get("skill");
+    const skillFilter = rawSkill ? rawSkill.trim().slice(0, 50) : null;
 
     // Try finding students in Prisma
     const users = await prisma.user.findMany({
@@ -18,6 +21,17 @@ export async function GET(request: Request) {
               },
             }
           : {}),
+        ...(skillFilter
+          ? {
+              userSkills: {
+                some: {
+                  skill: {
+                    name: { contains: skillFilter },
+                  },
+                },
+              },
+            }
+          : {}),
       },
       include: {
         profile: true,
@@ -25,6 +39,7 @@ export async function GET(request: Request) {
           include: { skill: true },
         },
       },
+      take: 50,
     });
 
     if (users.length > 0) {
@@ -51,7 +66,8 @@ export async function GET(request: Request) {
     ];
 
     return NextResponse.json(defaultCandidates);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    logServerError("GET /api/candidates", error);
     return NextResponse.json([], { status: 200 });
   }
 }

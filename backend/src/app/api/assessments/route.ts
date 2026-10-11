@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logServerError } from "@/lib/errors";
 
 export async function GET() {
   try {
@@ -64,7 +65,8 @@ export async function GET() {
         skillsTested: ["Communication", "Empathy", "Conflict Resolution"],
       },
     ]);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    logServerError("GET /api/assessments", error);
     return NextResponse.json(
       [
         {

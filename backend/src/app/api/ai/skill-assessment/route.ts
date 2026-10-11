@@ -1,22 +1,45 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { z } from "zod";
+import { safeValidate } from "@/lib/validation";
+import { genericErrorResponse, validationErrorResponse, logServerError } from "@/lib/errors";
 
 const apiKey = process.env.GEMINI_API_KEY || "";
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
+const skillAssessmentSchema = z.object({
+  roleTitle: z.string().trim().min(1).max(100).default("Software Engineer"),
+  difficulty: z.string().trim().max(50).default("Medium"),
+  score: z.number().int().min(0).max(100).default(80),
+  totalQuestions: z.number().int().min(1).max(100).default(10),
+  correctCount: z.number().int().min(0).max(100).default(8),
+  incorrectCount: z.number().int().min(0).max(100).default(2),
+  unansweredCount: z.number().int().min(0).max(100).default(0),
+  weakSkills: z.array(z.string().trim().max(60)).max(50).default([]),
+});
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const {
-      roleTitle,
-      difficulty,
-      score,
-      totalQuestions,
-      correctCount,
-      incorrectCount,
-      unansweredCount,
-      weakSkills = [],
-    } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return validationErrorResponse("Invalid JSON payload.");
+    }
+
+    const validation = safeValidate(skillAssessmentSchema, body);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
+
+    const roleTitle = validation.data.roleTitle || "Software Engineer";
+    const difficulty = validation.data.difficulty || "Medium";
+    const score = validation.data.score ?? 80;
+    const totalQuestions = validation.data.totalQuestions ?? 10;
+    const correctCount = validation.data.correctCount ?? 8;
+    const incorrectCount = validation.data.incorrectCount ?? 2;
+    const unansweredCount = validation.data.unansweredCount ?? 0;
+    const weakSkills = validation.data.weakSkills || [];
 
     // If Gemini is available, generate rich structured evaluation feedback
     if (ai && apiKey) {
@@ -52,8 +75,8 @@ Return ONLY valid JSON.`;
           aiFeedback: aiData,
           source: "gemini-2.5-flash",
         });
-      } catch (geminiErr: any) {
-        console.warn("Gemini evaluation error, using fallback:", geminiErr?.message);
+      } catch (geminiErr: unknown) {
+        logServerError("GeminiEvaluation", geminiErr);
       }
     }
 
@@ -80,7 +103,7 @@ Return ONLY valid JSON.`;
       },
       source: "deterministic-engine",
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+  } catch (error: unknown) {
+    return genericErrorResponse("POST /api/ai/skill-assessment", error);
   }
 }

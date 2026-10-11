@@ -1,10 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { profileQuerySchema, profileUpdateSchema, safeValidate } from "@/lib/validation";
+import { genericErrorResponse, validationErrorResponse, logServerError } from "@/lib/errors";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const email = searchParams.get("email") || "alex.johnson@example.com";
+    const rawEmail = searchParams.get("email") || "alex.johnson@example.com";
+
+    // Server-Side Validation of Query Parameter
+    const validation = safeValidate(profileQuerySchema, { email: rawEmail });
+    if (!validation.success) {
+      return validationErrorResponse("Invalid email format provided.");
+    }
+
+    const email = validation.data.email || "alex.johnson@example.com";
 
     const user = await prisma.user.findFirst({
       where: { email },
@@ -20,7 +30,7 @@ export async function GET(request: Request) {
     });
 
     if (!user) {
-      // Return default profile data if DB user not found
+      // Default profile data for demonstration without leaking DB missing state
       return NextResponse.json({
         id: "default-student",
         name: "Alex Johnson",
@@ -57,8 +67,9 @@ export async function GET(request: Request) {
       })),
       applicationsCount: user.applications.length,
     });
-  } catch (error: any) {
-    console.error("GET /api/profile error:", error?.message);
+  } catch (error: unknown) {
+    logServerError("GET /api/profile", error);
+    // Generic fallback without leaking error stack
     return NextResponse.json(
       {
         name: "Alex Johnson",
@@ -74,11 +85,24 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const body = await request.json();
-    const { email, name, headline, readinessScore } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return validationErrorResponse("Invalid JSON payload.");
+    }
+
+    // Server-Side Validation
+    const validation = safeValidate(profileUpdateSchema, body);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
+
+    const { email, name, headline, readinessScore } = validation.data;
+    const targetEmail = email || "alex.johnson@example.com";
 
     const user = await prisma.user.findFirst({
-      where: { email: email || "alex.johnson@example.com" },
+      where: { email: targetEmail },
     });
 
     if (user) {
@@ -92,20 +116,20 @@ export async function PUT(request: Request) {
         await prisma.profile.upsert({
           where: { userId: user.id },
           update: {
-            headline,
+            headline: headline ?? undefined,
             readinessScore: readinessScore ?? undefined,
           },
           create: {
             userId: user.id,
-            headline,
+            headline: headline ?? "Engineering Student",
             readinessScore: readinessScore ?? 80,
           },
         });
       }
     }
 
-    return NextResponse.json({ success: true, updated: body });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+    return NextResponse.json({ success: true, message: "Profile updated successfully" });
+  } catch (error: unknown) {
+    return genericErrorResponse("PUT /api/profile", error);
   }
 }

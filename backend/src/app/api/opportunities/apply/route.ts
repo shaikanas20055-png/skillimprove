@@ -1,10 +1,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { opportunityApplySchema, safeValidate } from "@/lib/validation";
+import { genericErrorResponse, validationErrorResponse, logServerError } from "@/lib/errors";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { userId, opportunityId, company, title } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return validationErrorResponse("Invalid JSON payload.");
+    }
+
+    // Server-Side Validation
+    const validation = safeValidate(opportunityApplySchema, body);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error);
+    }
+
+    const { userId, opportunityId, company, title } = validation.data;
 
     try {
       if (userId && opportunityId) {
@@ -27,7 +41,7 @@ export async function POST(request: Request) {
         });
       }
     } catch (dbErr) {
-      console.warn("DB application write fallback:", dbErr);
+      logServerError("OpportunityApplicationDb", dbErr);
     }
 
     return NextResponse.json({
@@ -41,7 +55,7 @@ export async function POST(request: Request) {
         status: "Applied",
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+  } catch (error: unknown) {
+    return genericErrorResponse("POST /api/opportunities/apply", error);
   }
 }
