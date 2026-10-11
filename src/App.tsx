@@ -68,9 +68,7 @@ import { CandidateFilters, filterCandidates } from "./candidate-data";
 import { evaluateResumeFile, evaluateResumeText, ResumeAnalysisResult } from "./resume-evaluator";
 import {
   authenticateWithFirebaseOrBackend,
-  registerWithFirebase,
   logoutFirebase,
-  isFirebaseConfigured,
 } from "./lib/firebase";
 
 type Role = "student" | "industry" | "college";
@@ -322,7 +320,6 @@ function Login({ navigate, initialRole }: { navigate: (path: string) => void; in
   const [role, setRole] = useState<Role>(initialRole);
   const [email, setEmail] = useState(roleConfig[role].email);
   const [password, setPassword] = useState(roleConfig[role].password);
-  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [retrySeconds, setRetrySeconds] = useState(0);
@@ -375,29 +372,19 @@ function Login({ navigate, initialRole }: { navigate: (path: string) => void; in
     setError("");
 
     try {
-      if (authMode === "signup") {
-        const res = await registerWithFirebase(trimmedEmail, password, role);
-        if (res.success) {
-          localStorage.setItem("skill-role", role);
-          navigate(`/${role}/dashboard`);
-        } else {
-          setError(res.error || "Unable to register account. Please check your information.");
-        }
+      const res = await authenticateWithFirebaseOrBackend(trimmedEmail, password, role);
+      if (res.success) {
+        localStorage.setItem("skill-role", role);
+        navigate(`/${role}/dashboard`);
       } else {
-        const res = await authenticateWithFirebaseOrBackend(trimmedEmail, password, role);
-        if (res.success) {
-          localStorage.setItem("skill-role", role);
-          navigate(`/${role}/dashboard`);
-        } else {
-          if (res.retryAfterSeconds && res.retryAfterSeconds > 0) {
-            setRetrySeconds(res.retryAfterSeconds);
-          }
-          if (res.remainingAttempts !== undefined) {
-            setRemainingAttempts(res.remainingAttempts);
-          }
-          // Generic error message: NEVER leak if user exists or password is wrong
-          setError(res.error || "Invalid email or password. Please verify your credentials.");
+        if (res.retryAfterSeconds && res.retryAfterSeconds > 0) {
+          setRetrySeconds(res.retryAfterSeconds);
         }
+        if (res.remainingAttempts !== undefined) {
+          setRemainingAttempts(res.remainingAttempts);
+        }
+        // Generic error message: NEVER leak if user exists or password is wrong
+        setError(res.error || "Invalid email or password. Please verify your credentials.");
       }
     } catch {
       setError("An unexpected authentication error occurred. Please try again later.");
@@ -438,30 +425,9 @@ function Login({ navigate, initialRole }: { navigate: (path: string) => void; in
           <Logo />
         </div>
         <div className="login-box">
-          <div className="security-status-badge">
-            <Icon name="lock" size={13} />
-            {isFirebaseConfigured ? "Firebase Auth & Rate Limiting Protected" : "Protected by Server-Side Validation & Rate Limiting"}
-          </div>
           <span className="eyebrow">WELCOME TO SKILLIMPROVE</span>
-          <h2>{authMode === "signin" ? "Sign in to your workspace" : "Create your account"}</h2>
-          <p>{authMode === "signin" ? "Select your role to continue with credentials." : "Register to start your skill verification journey."}</p>
-
-          <div className="login-subtabs">
-            <button
-              type="button"
-              className={authMode === "signin" ? "active" : ""}
-              onClick={() => { setAuthMode("signin"); setError(""); }}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              className={authMode === "signup" ? "active" : ""}
-              onClick={() => { setAuthMode("signup"); setError(""); }}
-            >
-              Create Account
-            </button>
-          </div>
+          <h2>Sign in to your workspace</h2>
+          <p>Select your role to continue with credentials.</p>
 
           <div className="role-tabs">
             {(["student", "industry", "college"] as Role[]).map((r) => (
@@ -511,7 +477,7 @@ function Login({ navigate, initialRole }: { navigate: (path: string) => void; in
                 required
                 disabled={retrySeconds > 0 || loading}
                 placeholder="••••••••"
-                autoComplete={authMode === "signin" ? "current-password" : "new-password"}
+                autoComplete="current-password"
               />
             </label>
             {error && <div className="form-error">{error}</div>}
@@ -529,7 +495,7 @@ function Login({ navigate, initialRole }: { navigate: (path: string) => void; in
                 "Authenticating..."
               ) : (
                 <>
-                  {authMode === "signin" ? `Sign in as ${roleConfig[role].label}` : `Create ${roleConfig[role].label} Account`} <Icon name="arrow" />
+                  Sign in as {roleConfig[role].label} <Icon name="arrow" />
                 </>
               )}
             </Button>
