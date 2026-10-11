@@ -294,7 +294,7 @@ function Button({
   title,
 }: {
   children: ReactNode
-  variant?: "primary" | "secondary" | "ghost" | "dark"
+  variant?: "primary" | "secondary" | "ghost" | "dark" | "student" | "college" | "industry"
   onClick?: () => void
   type?: "button" | "submit"
   className?: string
@@ -350,7 +350,7 @@ function Badge({
   style,
 }: {
   children: ReactNode
-  tone?: "blue" | "green" | "orange" | "red" | "gray" | "purple"
+  tone?: "blue" | "green" | "orange" | "red" | "gray" | "purple" | "student" | "college" | "industry" | "gold"
   style?: React.CSSProperties
 }) {
   return (
@@ -453,6 +453,338 @@ function MiniChart({
   )
 }
 
+function EcosystemExplorer({
+  navigate,
+}: {
+  navigate: (path: string) => void
+}) {
+  const [activeTab, setActiveTab] = useState<Role>("student")
+
+  const workflows: Record<
+    Role,
+    {
+      title: string
+      subtitle: string
+      accentClass: string
+      badgeTone: "student" | "college" | "industry"
+      steps: { num: string; title: string; desc: string }[]
+      previewTitle: string
+      kpis: { label: string; val: string }[]
+      sampleTags: string[]
+      ctaLabel: string
+      roleRoute: string
+    }
+  > = {
+    student: {
+      title: "Student Growth & Capability Pipeline",
+      subtitle:
+        "From baseline technical assessments to verified employer evidence.",
+      accentClass: "eco-showcase-student",
+      badgeTone: "student",
+      steps: [
+        {
+          num: "01",
+          title: "Assess Technical Capability",
+          desc: "Complete proctored coding challenges and domain assessments with immediate performance breakdowns across frameworks.",
+        },
+        {
+          num: "02",
+          title: "Close Skill Deficits with AI",
+          desc: "Receive algorithmic learning interventions tailored to target high-priority gaps in modern engineering stacks.",
+        },
+        {
+          num: "03",
+          title: "Unlock Verified Job Matches",
+          desc: "Gain exposure to hiring partners with an explainable Readiness Score (0-100) and tamper-proof evidence records.",
+        },
+      ],
+      previewTitle: "Alex Rivera · Readiness Scorecard",
+      kpis: [
+        { label: "READINESS SCORE", val: "82 / 100" },
+        { label: "VERIFIED SKILLS", val: "14 Badges" },
+        { label: "AVG ATS MATCH", val: "92%" },
+        { label: "OPEN OFFERS", val: "5 Inquiries" },
+      ],
+      sampleTags: [
+        "React Advanced",
+        "TypeScript",
+        "SQL Performance",
+        "System Design",
+      ],
+      ctaLabel: "Launch Student Portal",
+      roleRoute: "/login?role=student",
+    },
+    college: {
+      title: "Institutional Employability & Curriculum Telemetry",
+      subtitle:
+        "Empower academic leaders and placement teams with real-time cohort intelligence.",
+      accentClass: "eco-showcase-college",
+      badgeTone: "college",
+      steps: [
+        {
+          num: "01",
+          title: "Aggregate Cohort Telemetry",
+          desc: "Monitor skill mastery across computer science, engineering, and IT departments with real-time class heatmaps.",
+        },
+        {
+          num: "02",
+          title: "Diagnose Curriculum Deficits",
+          desc: "Identify syllabus lags against fast-moving industry hiring demands before students sit for final placements.",
+        },
+        {
+          num: "03",
+          title: "Maximize Placement Velocity",
+          desc: "Share verified student capability rosters directly with hiring companies to boost institutional placement rates.",
+        },
+      ],
+      previewTitle: "Apex Institute of Technology · Cohort Overview",
+      kpis: [
+        { label: "EMPLOYABILITY INDEX", val: "78 / 100" },
+        { label: "ENROLLED STUDENTS", val: "1,240 Active" },
+        { label: "PLACEMENT RATE", val: "84.6%" },
+        { label: "INDUSTRY TIE-UPS", val: "48 Partners" },
+      ],
+      sampleTags: [
+        "Computer Science (88%)",
+        "Information Tech (81%)",
+        "Data Science (76%)",
+        "Electronics (72%)",
+      ],
+      ctaLabel: "Launch College Portal",
+      roleRoute: "/login?role=college",
+    },
+    industry: {
+      title: "Capability-Driven Talent Acquisition",
+      subtitle:
+        "Eliminate manual resume filtering with evidence-based verification and ATS benchmark matching.",
+      accentClass: "eco-showcase-industry",
+      badgeTone: "industry",
+      steps: [
+        {
+          num: "01",
+          title: "Benchmark Role Requirements",
+          desc: "Specify exact technical thresholds, framework competencies, and seniority expectations for open engineering roles.",
+        },
+        {
+          num: "02",
+          title: "Screen on Verified Evidence",
+          desc: "Search candidates ranked by verified proctored test results and project portfolios instead of self-reported resumes.",
+        },
+        {
+          num: "03",
+          title: "Export Roster & Schedule Interviews",
+          desc: "1-Click download shortlist rosters to Excel spreadsheets with candidate emails and skill confidence metrics.",
+        },
+      ],
+      previewTitle: "NovaTech Solutions · Recruiter Pipeline",
+      kpis: [
+        { label: "SHORTLISTED POOL", val: "38 Candidates" },
+        { label: "AVG FIT SCORE", val: "91.4%" },
+        { label: "TIME-TO-SHORTLIST", val: "2.4 Hours" },
+        { label: "VERIFIED EVIDENCE", val: "100% Proctored" },
+      ],
+      sampleTags: [
+        "Senior Frontend",
+        "Cloud DevOps",
+        "Full-Stack TS",
+        "Mobile Engineer",
+      ],
+      ctaLabel: "Launch Industry Portal",
+      roleRoute: "/login?role=industry",
+    },
+  }
+
+  const current = workflows[activeTab]
+
+  return (
+    <div className="ecosystem-explorer">
+      <div className="eco-explorer-header">
+        <Badge tone={current.badgeTone}>INTERACTIVE ECOSYSTEM WORKFLOWS</Badge>
+        <h3
+          style={{
+            margin: "14px 0 6px",
+            fontSize: "24px",
+            letterSpacing: "-0.6px",
+          }}
+        >
+          Explore Workflows Tailored to Your Role
+        </h3>
+        <p
+          style={{
+            margin: 0,
+            color: "var(--muted)",
+            fontSize: "14px",
+            maxWidth: "600px",
+          }}
+        >
+          Toggle between ecosystem portals to see how SkillImprove creates
+          transparent, measurable value.
+        </p>
+
+        <div className="eco-tabs-nav">
+          <button
+            type="button"
+            className={`eco-tab-btn student ${
+              activeTab === "student" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("student")}
+          >
+            <Icon name="user" size={14} /> Students
+          </button>
+          <button
+            type="button"
+            className={`eco-tab-btn college ${
+              activeTab === "college" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("college")}
+          >
+            <Icon name="building" size={14} /> Colleges
+          </button>
+          <button
+            type="button"
+            className={`eco-tab-btn industry ${
+              activeTab === "industry" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("industry")}
+          >
+            <Icon name="briefcase" size={14} /> Industries
+          </button>
+        </div>
+      </div>
+
+      <div className={`eco-showcase-grid ${current.accentClass}`}>
+        <div className="eco-steps-list">
+          <div>
+            <span className="eyebrow" style={{ textTransform: "uppercase" }}>
+              {activeTab} JOURNEY
+            </span>
+            <h4 style={{ margin: "6px 0 8px", fontSize: "20px" }}>
+              {current.title}
+            </h4>
+            <p
+              style={{
+                margin: "0 0 20px",
+                color: "var(--muted)",
+                fontSize: "13px",
+              }}
+            >
+              {current.subtitle}
+            </p>
+          </div>
+
+          {current.steps.map((st) => (
+            <div key={st.num} className="eco-step-card">
+              <span className="eco-step-badge">{st.num}</span>
+              <div>
+                <h4>{st.title}</h4>
+                <p>{st.desc}</p>
+              </div>
+            </div>
+          ))}
+
+          <div style={{ marginTop: "10px" }}>
+            <Button
+              variant={
+                activeTab === "student"
+                  ? "student"
+                  : activeTab === "college"
+                    ? "college"
+                    : "industry"
+              }
+              onClick={() => navigate(current.roleRoute)}
+            >
+              {current.ctaLabel} <Icon name="arrow" size={15} />
+            </Button>
+          </div>
+        </div>
+
+        <div className="eco-preview-card">
+          <div className="eco-preview-banner">
+            <div>
+              <span
+                style={{
+                  fontSize: "10px",
+                  color: "var(--muted)",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                  display: "block",
+                }}
+              >
+                LIVE PREVIEW
+              </span>
+              <strong>{current.previewTitle}</strong>
+            </div>
+            <Badge tone={current.badgeTone}>Verified Live</Badge>
+          </div>
+
+          <div className="eco-kpis">
+            {current.kpis.map((kpi) => (
+              <div key={kpi.label} className="eco-kpi-box">
+                <span>{kpi.label}</span>
+                <strong>{kpi.val}</strong>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <span
+              style={{
+                display: "block",
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "var(--muted)",
+                marginBottom: "8px",
+              }}
+            >
+              KEY COMPETENCIES / CRITERIA
+            </span>
+            <div className="eco-preview-tag-list">
+              {current.sampleTags.map((tag) => (
+                <span
+                  key={tag}
+                  className={`badge badge-${current.badgeTone}`}
+                  style={{ fontSize: "10px", padding: "3px 8px" }}
+                >
+                  <Icon name="check" size={11} /> {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div
+            style={{
+              paddingTop: "8px",
+              borderTop: "1px solid var(--line)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ fontSize: "11px", color: "var(--muted)" }}>
+              Role Ecosystem:{" "}
+              <b style={{ textTransform: "capitalize", color: "var(--ink)" }}>
+                {activeTab}
+              </b>
+            </span>
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "var(--student)",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              <Icon name="check" size={12} /> High Contrast AAA
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Landing({ navigate }: { navigate: (path: string) => void }) {
   const { isDark, toggleTheme } = useTheme()
   const features = [
@@ -469,9 +801,35 @@ function Landing({ navigate }: { navigate: (path: string) => void }) {
         <nav className="public-nav">
           <Logo dark />
           <div className="public-links">
+            <a href="#ecosystem">Ecosystem</a>
             <a href="#how">How it works</a>
             <a href="#features">Features</a>
-            <a href="#ecosystem">Ecosystem</a>
+            <div className="nav-eco-group">
+              <button
+                type="button"
+                className="nav-eco-pill student"
+                onClick={() => navigate("/login?role=student")}
+                title="Enter Student Portal"
+              >
+                <span className="dot" /> Students
+              </button>
+              <button
+                type="button"
+                className="nav-eco-pill college"
+                onClick={() => navigate("/login?role=college")}
+                title="Enter College Portal"
+              >
+                <span className="dot" /> Colleges
+              </button>
+              <button
+                type="button"
+                className="nav-eco-pill industry"
+                onClick={() => navigate("/login?role=industry")}
+                title="Enter Industry Portal"
+              >
+                <span className="dot" /> Industries
+              </button>
+            </div>
           </div>
           <div className="public-nav-actions">
             <button
@@ -509,6 +867,38 @@ function Landing({ navigate }: { navigate: (path: string) => void }) {
               skill assessment, verified evidence, personalized improvement
               paths and intelligent opportunity matching.
             </p>
+            <div className="hero-ecosystem-badges">
+              <div
+                className="hero-eco-badge student"
+                onClick={() => navigate("/login?role=student")}
+                role="button"
+                tabIndex={0}
+              >
+                <Icon name="user" size={14} />
+                <strong>Students</strong>
+                <small>Assess & Prove Skills</small>
+              </div>
+              <div
+                className="hero-eco-badge college"
+                onClick={() => navigate("/login?role=college")}
+                role="button"
+                tabIndex={0}
+              >
+                <Icon name="building" size={14} />
+                <strong>Colleges</strong>
+                <small>Employability Intelligence</small>
+              </div>
+              <div
+                className="hero-eco-badge industry"
+                onClick={() => navigate("/login?role=industry")}
+                role="button"
+                tabIndex={0}
+              >
+                <Icon name="briefcase" size={14} />
+                <strong>Industries</strong>
+                <small>Capability-First Hiring</small>
+              </div>
+            </div>
             <div className="hero-actions">
               <Button onClick={() => navigate("/login")}>
                 Get Started <Icon name="arrow" size={17} />
@@ -517,11 +907,11 @@ function Landing({ navigate }: { navigate: (path: string) => void }) {
                 variant="secondary"
                 onClick={() =>
                   document
-                    .getElementById("features")
+                    .getElementById("ecosystem")
                     ?.scrollIntoView({ behavior: "smooth" })
                 }
               >
-                Explore Platform
+                Explore Ecosystems
               </Button>
             </div>
             <div className="trust-row">
@@ -623,55 +1013,113 @@ function Landing({ navigate }: { navigate: (path: string) => void }) {
         </section>
 
         <section className="benefits" id="ecosystem">
-          <span className="eyebrow">ONE CONNECTED ECOSYSTEM</span>
+          <span className="eyebrow">TRIPARTITE EDUCATIONAL ECOSYSTEM</span>
           <SectionTitle
-            title="Better outcomes for everyone"
-            subtitle="Real skill data connects every part of the education-to-employment journey."
+            title="Purpose-Built Portals for Every Stakeholder"
+            subtitle="SkillImprove connects Students, Colleges, and Industry into a high-trust, verified learning-to-employment framework."
           />
           <div className="benefit-grid">
             <Card className="benefit-card student">
               <div className="benefit-icon">
                 <Icon name="user" size={26} />
               </div>
-              <Badge tone="blue">FOR STUDENTS</Badge>
-              <h3>Turn potential into proof.</h3>
+              <Badge tone="student">STUDENT ECOSYSTEM</Badge>
+              <h3>Turn potential into verified proof.</h3>
               <p>
-                Discover your strengths, close skill gaps and build a
-                professional profile backed by real evidence.
+                Take proctored technical evaluations, diagnose skill deficits,
+                build an immutable evidence portfolio, and unlock matched career
+                opportunities.
               </p>
-              <a onClick={() => navigate("/login?role=student")}>
-                Explore student experience <Icon name="arrow" size={16} />
-              </a>
+              <ul className="benefit-highlights">
+                <li>
+                  <Icon name="check" size={14} /> Real-time 100-point industry
+                  readiness score
+                </li>
+                <li>
+                  <Icon name="check" size={14} /> Verified credentials &
+                  project evidence locker
+                </li>
+                <li>
+                  <Icon name="check" size={14} /> AI-curated gap remediation
+                  paths
+                </li>
+              </ul>
+              <Button
+                variant="student"
+                onClick={() => navigate("/login?role=student")}
+              >
+                Enter Student Portal <Icon name="arrow" size={15} />
+              </Button>
             </Card>
-            <Card className="benefit-card industry">
-              <div className="benefit-icon">
-                <Icon name="briefcase" size={26} />
-              </div>
-              <Badge tone="purple">FOR INDUSTRY</Badge>
-              <h3>Hire for skills, not signals.</h3>
-              <p>
-                Find candidates based on verified capability, explainable
-                matches and readiness data.
-              </p>
-              <a onClick={() => navigate("/login?role=industry")}>
-                Explore industry experience <Icon name="arrow" size={16} />
-              </a>
-            </Card>
+
             <Card className="benefit-card college">
               <div className="benefit-icon">
                 <Icon name="building" size={26} />
               </div>
-              <Badge tone="green">FOR COLLEGES</Badge>
-              <h3>Make employability measurable.</h3>
+              <Badge tone="college">COLLEGE ECOSYSTEM</Badge>
+              <h3>Make institutional employability measurable.</h3>
               <p>
-                Understand skill gaps, prioritize training and improve placement
-                outcomes with live insights.
+                Gain deep visibility across batches and departments, uncover
+                syllabus gaps before placements commence, and track verified
+                placement outcomes.
               </p>
-              <a onClick={() => navigate("/login?role=college")}>
-                Explore college experience <Icon name="arrow" size={16} />
-              </a>
+              <ul className="benefit-highlights">
+                <li>
+                  <Icon name="check" size={14} /> Cohort-level skill benchmarks
+                  & heatmaps
+                </li>
+                <li>
+                  <Icon name="check" size={14} /> Curriculum-to-market alignment
+                  diagnostics
+                </li>
+                <li>
+                  <Icon name="check" size={14} /> Real-time placement telemetry
+                  & reporting
+                </li>
+              </ul>
+              <Button
+                variant="college"
+                onClick={() => navigate("/login?role=college")}
+              >
+                Enter College Portal <Icon name="arrow" size={15} />
+              </Button>
+            </Card>
+
+            <Card className="benefit-card industry">
+              <div className="benefit-icon">
+                <Icon name="briefcase" size={26} />
+              </div>
+              <Badge tone="industry">INDUSTRY ECOSYSTEM</Badge>
+              <h3>Hire on verified capability, not resumes.</h3>
+              <p>
+                Access a pre-vetted talent pool with tamper-proof skill evidence,
+                ATS-aligned role scoring, and transparent recruiter
+                shortlisting.
+              </p>
+              <ul className="benefit-highlights">
+                <li>
+                  <Icon name="check" size={14} /> Verified capability candidate
+                  search
+                </li>
+                <li>
+                  <Icon name="check" size={14} /> ATS requirement benchmarking &
+                  scoring
+                </li>
+                <li>
+                  <Icon name="check" size={14} /> 1-Click candidate export &
+                  interview invite
+                </li>
+              </ul>
+              <Button
+                variant="industry"
+                onClick={() => navigate("/login?role=industry")}
+              >
+                Enter Industry Portal <Icon name="arrow" size={15} />
+              </Button>
             </Card>
           </div>
+
+          <EcosystemExplorer navigate={navigate} />
         </section>
 
         <section className="how" id="how">
@@ -910,25 +1358,28 @@ function Login({
           <Logo />
         </div>
         <div className="login-box">
-          <span className="eyebrow">WELCOME TO SKILLIMPROVE</span>
-          <h2>Sign in to your workspace</h2>
+          <Badge tone={role === "student" ? "student" : role === "college" ? "college" : "industry"}>
+            <Icon name={role === "student" ? "user" : role === "college" ? "building" : "briefcase"} size={13} />
+            {roleConfig[role].label} Ecosystem Access
+          </Badge>
+          <h2 style={{ marginTop: 10 }}>Sign in to your workspace</h2>
           <p>Select your role to continue with credentials.</p>
 
           <div className="role-tabs">
-            {(["student", "industry", "college"] as Role[]).map((r) => (
+            {(["student", "college", "industry"] as Role[]).map((r) => (
               <button
                 key={r}
                 type="button"
-                className={role === r ? "active" : ""}
+                className={`${role === r ? "active" : ""} role-tab-${r}`}
                 onClick={() => selectRole(r)}
               >
                 <Icon
                   name={
                     r === "student"
                       ? "user"
-                      : r === "industry"
-                        ? "briefcase"
-                        : "building"
+                      : r === "college"
+                        ? "building"
+                        : "briefcase"
                   }
                 />
                 {roleConfig[r].label}
@@ -999,6 +1450,13 @@ function Login({
               )}
             <Button
               type="submit"
+              variant={
+                role === "student"
+                  ? "student"
+                  : role === "college"
+                    ? "college"
+                    : "industry"
+              }
               className="full"
               disabled={retrySeconds > 0 || loading}
             >
@@ -1373,7 +1831,37 @@ function AppShell({
               </span>
             </button>
             <div>
-              <small>{config.label} portal</small>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 7,
+                  marginBottom: 2,
+                }}
+              >
+                <span
+                  className={`badge badge-${
+                    role === "student"
+                      ? "student"
+                      : role === "college"
+                        ? "college"
+                        : "industry"
+                  }`}
+                  style={{ fontSize: "10px", padding: "1px 8px" }}
+                >
+                  <Icon
+                    name={
+                      role === "student"
+                        ? "user"
+                        : role === "college"
+                          ? "building"
+                          : "briefcase"
+                    }
+                    size={11}
+                  />
+                  {config.label} Ecosystem
+                </span>
+              </div>
               <h1>
                 {page === "dashboard"
                   ? "Dashboard"

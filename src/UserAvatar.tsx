@@ -124,7 +124,7 @@ export const UserAvatar = memo(function UserAvatar({
             <circle cx="32" cy="32" r="32" />
           </clipPath>
 
-          {/* Student backdrop */}
+          {/* Student backdrop - Academic Green */}
           <linearGradient
             id={`${uid}-student-bg`}
             x1="0"
@@ -133,11 +133,11 @@ export const UserAvatar = memo(function UserAvatar({
             y2="64"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#1d4ed8" />
+            <stop offset="0%" stopColor="#10b981" />
+            <stop offset="100%" stopColor="#047857" />
           </linearGradient>
 
-          {/* Industry backdrop */}
+          {/* Industry backdrop - Executive Warm Gold */}
           <linearGradient
             id={`${uid}-industry-bg`}
             x1="0"
@@ -146,11 +146,11 @@ export const UserAvatar = memo(function UserAvatar({
             y2="64"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#6d28d9" />
+            <stop offset="0%" stopColor="#f59e0b" />
+            <stop offset="100%" stopColor="#b45309" />
           </linearGradient>
 
-          {/* College backdrop */}
+          {/* College backdrop - Institutional Deep Blue */}
           <linearGradient
             id={`${uid}-college-bg`}
             x1="0"
@@ -159,8 +159,8 @@ export const UserAvatar = memo(function UserAvatar({
             y2="64"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor="#10b981" />
-            <stop offset="100%" stopColor="#047857" />
+            <stop offset="0%" stopColor="#2563eb" />
+            <stop offset="100%" stopColor="#1e3a8a" />
           </linearGradient>
 
           {/* Candidate backdrops */}
@@ -220,7 +220,7 @@ export const UserAvatar = memo(function UserAvatar({
                 fill="#0f172a"
               />
               <path d="M25 42 L32 53 L39 42 Z" fill="#f8fafc" />
-              <circle cx="32" cy="50" r="1.5" fill="#3b82f6" />
+              <circle cx="32" cy="50" r="1.5" fill="#10b981" />
               {/* Neck */}
               <rect
                 x="27.5"
@@ -287,13 +287,13 @@ export const UserAvatar = memo(function UserAvatar({
               {/* Suit Blazer */}
               <path
                 d="M8 64 C8 45 19 41 32 41 C45 41 56 45 56 64 Z"
-                fill="#1e1b4b"
+                fill="#1e293b"
               />
-              {/* Shirt & Tie */}
+              {/* Shirt & Gold Tie */}
               <polygon points="26,41 32,54 38,41" fill="#ffffff" />
               <polygon
                 points="30.5,43 33.5,43 32.5,53 31.5,53"
-                fill="#a855f7"
+                fill="#d97706"
               />
               {/* Neck */}
               <rect x="28" y="33" width="8" height="10" rx="3" fill="#fde68a" />
@@ -351,12 +351,12 @@ export const UserAvatar = memo(function UserAvatar({
           <>
             <circle cx="32" cy="32" r="32" fill={`url(#${uid}-college-bg)`} />
             <g clipPath={`url(#${uid}-clip)`}>
-              {/* Academic sweater / blazer */}
+              {/* Academic sweater / Deep Blue blazer */}
               <path
                 d="M9 64 C9 46 20 42 32 42 C44 42 55 46 55 64 Z"
-                fill="#064e3b"
+                fill="#1e3a8a"
               />
-              <path d="M26 42 L32 52 L38 42 Z" fill="#ecfdf5" />
+              <path d="M26 42 L32 52 L38 42 Z" fill="#eff6ff" />
               {/* Neck */}
               <rect x="28" y="34" width="8" height="10" rx="3" fill="#fbcfe8" />
               {/* Head */}
