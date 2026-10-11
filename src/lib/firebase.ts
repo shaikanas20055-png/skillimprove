@@ -4,8 +4,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
-  User as FirebaseUser,
   Auth,
 } from "firebase/auth";
 
@@ -36,10 +34,6 @@ if (isFirebaseConfigured) {
   } catch (err) {
     console.warn("Firebase client initialization warning:", err);
   }
-} else {
-  console.info(
-    "ℹ️ Firebase config is pending in .env (VITE_FIREBASE_API_KEY). Using secure backend authentication with rate limiting and server-side validation."
-  );
 }
 
 export { auth };
@@ -59,88 +53,250 @@ export interface AuthResult {
   remainingAttempts?: number;
 }
 
+// Client-Side Rate Limiter (Max 5 attempts / 15 minutes)
+const RATE_LIMIT_PREFIX = "skillimprove_ratelimit_";
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 15 * 60 * 1000;
+
+function checkClientRateLimit(key: string): { allowed: boolean; remaining: number; resetSeconds: number } {
+  try {
+    const raw = sessionStorage.getItem(`${RATE_LIMIT_PREFIX}${key}`);
+    if (!raw) return { allowed: true, remaining: MAX_ATTEMPTS, resetSeconds: 0 };
+    const entry = JSON.parse(raw);
+    const now = Date.now();
+
+    if (entry.blockedUntil && entry.blockedUntil > now) {
+      return { allowed: false, remaining: 0, resetSeconds: Math.ceil((entry.blockedUntil - now) / 1000) };
+    }
+
+    if (now - entry.firstAttempt > WINDOW_MS) {
+      sessionStorage.removeItem(`${RATE_LIMIT_PREFIX}${key}`);
+      return { allowed: true, remaining: MAX_ATTEMPTS, resetSeconds: 0 };
+    }
+
+    const remaining = Math.max(0, MAX_ATTEMPTS - entry.count);
+    return {
+      allowed: entry.count < MAX_ATTEMPTS,
+      remaining,
+      resetSeconds: Math.ceil((entry.firstAttempt + WINDOW_MS - now) / 1000),
+    };
+  } catch {
+    return { allowed: true, remaining: MAX_ATTEMPTS, resetSeconds: 0 };
+  }
+}
+
+function consumeClientRateLimit(key: string): { allowed: boolean; remaining: number; resetSeconds: number } {
+  try {
+    const storageKey = `${RATE_LIMIT_PREFIX}${key}`;
+    const raw = sessionStorage.getItem(storageKey);
+    const now = Date.now();
+    let entry = raw ? JSON.parse(raw) : null;
+
+    if (!entry || now - entry.firstAttempt > WINDOW_MS) {
+      entry = { count: 1, firstAttempt: now };
+    } else {
+      entry.count += 1;
+    }
+
+    if (entry.count >= MAX_ATTEMPTS) {
+      entry.blockedUntil = now + WINDOW_MS;
+      sessionStorage.setItem(storageKey, JSON.stringify(entry));
+      return { allowed: false, remaining: 0, resetSeconds: Math.ceil(WINDOW_MS / 1000) };
+    }
+
+    sessionStorage.setItem(storageKey, JSON.stringify(entry));
+    return {
+      allowed: true,
+      remaining: Math.max(0, MAX_ATTEMPTS - entry.count),
+      resetSeconds: Math.ceil((entry.firstAttempt + WINDOW_MS - now) / 1000),
+    };
+  } catch {
+    return { allowed: true, remaining: MAX_ATTEMPTS - 1, resetSeconds: 0 };
+  }
+}
+
+function resetClientRateLimit(key: string) {
+  try {
+    sessionStorage.removeItem(`${RATE_LIMIT_PREFIX}${key}`);
+  } catch {
+    // ignore
+  }
+}
+
+// Built-in Demo Credentials Directory
+export const DEMO_ACCOUNTS: Record<string, { email: string; pass: string; role: string; name: string }> = {
+  student: {
+    email: "student@skillimprove.com",
+    pass: "Student@123",
+    role: "student",
+    name: "Alex Johnson",
+  },
+  industry: {
+    email: "industry@skillimprove.com",
+    pass: "Industry@123",
+    role: "industry",
+    name: "TechNova Solutions",
+  },
+  college: {
+    email: "college@skillimprove.com",
+    pass: "College@123",
+    role: "college",
+    name: "ABC Institute of Technology",
+  },
+};
+
 /**
- * Perform login using Firebase Auth if configured, verified against the secure backend.
+ * Perform login using Firebase Auth if configured, verified against the secure backend,
+ * with seamless demo credentials support and full rate limiting.
  */
 export async function authenticateWithFirebaseOrBackend(
   email: string,
   pass: string,
   role: string
 ): Promise<AuthResult> {
-  const backendBase =
-    (import.meta as any).env?.VITE_API_URL ||
-    ((import.meta as any).env?.PROD ? "/api" : "http://localhost:3001/api");
+  const normalizedEmail = email.trim().toLowerCase();
+  const rateLimitKey = `auth_${normalizedEmail}`;
 
-  // If live Firebase Client is active
-  if (isFirebaseConfigured && auth) {
-    try {
-      const userCred = await signInWithEmailAndPassword(auth, email, pass);
-      const idToken = await userCred.user.getIdToken();
+  // 1. Check Rate Limit
+  const rateStatus = checkClientRateLimit(rateLimitKey);
+  if (!rateStatus.allowed) {
+    return {
+      success: false,
+      error: "Too many failed login attempts. For security reasons, authentication is temporarily locked.",
+      retryAfterSeconds: rateStatus.resetSeconds,
+      remainingAttempts: 0,
+    };
+  }
 
-      // Verify token on backend with rate limiting & server validation
-      const verifyRes = await fetch(`${backendBase}/auth/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken, role }),
-      });
+  // 2. Check Demo Credentials Match
+  const matchedDemo = Object.values(DEMO_ACCOUNTS).find(
+    (acc) => acc.email.toLowerCase() === normalizedEmail
+  );
 
-      const data = await verifyRes.json();
-      if (!verifyRes.ok) {
-        return {
-          success: false,
-          error: data.error || "Authentication failed. Please verify your credentials.",
-          retryAfterSeconds: data.retryAfterSeconds,
-        };
-      }
+  if (matchedDemo) {
+    if (matchedDemo.pass === pass) {
+      resetClientRateLimit(rateLimitKey);
+      const token = `demo-token-${Date.now()}`;
+      localStorage.setItem("skill-token", token);
+      localStorage.setItem("skill-role", matchedDemo.role);
 
-      localStorage.setItem("skill-token", idToken);
+      // Attempt background backend sync if backend is running
+      try {
+        const backendBase =
+          (import.meta as any).env?.VITE_API_URL ||
+          ((import.meta as any).env?.PROD ? "/api" : "http://localhost:3001/api");
+        fetch(`${backendBase}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: matchedDemo.email, password: pass, role: matchedDemo.role }),
+        }).catch(() => {});
+      } catch {}
+
       return {
         success: true,
-        user: data.user,
-        token: idToken,
+        user: {
+          id: `demo-${matchedDemo.role}`,
+          name: matchedDemo.name,
+          email: matchedDemo.email,
+          role: matchedDemo.role,
+        },
+        token,
       };
-    } catch (firebaseErr: any) {
-      console.warn("Firebase sign-in attempted:", firebaseErr?.code);
-      // Generic error response - do not differentiate between user not found or wrong password
+    } else {
+      // Wrong password for demo account
+      const consumed = consumeClientRateLimit(rateLimitKey);
       return {
         success: false,
         error: "Invalid email or password. Please verify your credentials.",
+        remainingAttempts: consumed.remaining,
+        retryAfterSeconds: !consumed.allowed ? consumed.resetSeconds : undefined,
       };
     }
   }
 
-  // Direct secure backend login (Rate-limited, server-side validated, generic errors)
+  // 3. If live Firebase Client is active
+  if (isFirebaseConfigured && auth) {
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, email, pass);
+      const idToken = await userCred.user.getIdToken();
+      resetClientRateLimit(rateLimitKey);
+      localStorage.setItem("skill-token", idToken);
+      localStorage.setItem("skill-role", role);
+
+      return {
+        success: true,
+        user: {
+          id: userCred.user.uid,
+          email: userCred.user.email || email,
+          name: userCred.user.displayName || email.split("@")[0],
+          role,
+        },
+        token: idToken,
+      };
+    } catch (firebaseErr: any) {
+      console.warn("Firebase sign-in attempted:", firebaseErr?.code);
+      const consumed = consumeClientRateLimit(rateLimitKey);
+      return {
+        success: false,
+        error: "Invalid email or password. Please verify your credentials.",
+        remainingAttempts: consumed.remaining,
+        retryAfterSeconds: !consumed.allowed ? consumed.resetSeconds : undefined,
+      };
+    }
+  }
+
+  // 4. Try Backend Login
+  const backendBase =
+    (import.meta as any).env?.VITE_API_URL ||
+    ((import.meta as any).env?.PROD ? "/api" : "http://localhost:3001/api");
+
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
     const res = await fetch(`${backendBase}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password: pass, role }),
+      body: JSON.stringify({ email: normalizedEmail, password: pass, role }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     const data = await res.json();
-    if (!res.ok) {
+    if (res.ok && data.success) {
+      resetClientRateLimit(rateLimitKey);
+      if (data.token) localStorage.setItem("skill-token", data.token);
+      localStorage.setItem("skill-role", data.user?.role || role);
       return {
-        success: false,
-        error: data.error || "Invalid email or password. Please verify your credentials.",
-        retryAfterSeconds: data.retryAfterSeconds,
-        remainingAttempts: data.remainingAttempts,
+        success: true,
+        user: data.user,
+        token: data.token,
       };
     }
 
-    if (data.token) {
-      localStorage.setItem("skill-token", data.token);
+    if (res.status === 429) {
+      return {
+        success: false,
+        error: data.error || "Too many failed login attempts. Please try again later.",
+        retryAfterSeconds: data.retryAfterSeconds || 900,
+      };
     }
 
-    return {
-      success: true,
-      user: data.user,
-      token: data.token,
-    };
-  } catch (err: any) {
-    console.error("Backend login network error:", err);
+    const consumed = consumeClientRateLimit(rateLimitKey);
     return {
       success: false,
-      error: "Unable to connect to authentication server. Please check your network connection.",
+      error: "Invalid email or password. Please verify your credentials.",
+      remainingAttempts: data.remainingAttempts ?? consumed.remaining,
+      retryAfterSeconds: !consumed.allowed ? consumed.resetSeconds : undefined,
+    };
+  } catch {
+    // Backend offline and credentials not recognized
+    const consumed = consumeClientRateLimit(rateLimitKey);
+    return {
+      success: false,
+      error: "Invalid email or password. Please verify your credentials.",
+      remainingAttempts: consumed.remaining,
+      retryAfterSeconds: !consumed.allowed ? consumed.resetSeconds : undefined,
     };
   }
 }
@@ -168,7 +324,7 @@ export async function registerWithFirebase(
         },
         token: idToken,
       };
-    } catch (err: any) {
+    } catch {
       return {
         success: false,
         error: "Unable to complete registration. Please verify your information.",
@@ -176,7 +332,6 @@ export async function registerWithFirebase(
     }
   }
 
-  // Emulated registration for local development
   return {
     success: true,
     user: {

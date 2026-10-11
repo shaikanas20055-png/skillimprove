@@ -374,8 +374,9 @@ function Login({ navigate, initialRole }: { navigate: (path: string) => void; in
     try {
       const res = await authenticateWithFirebaseOrBackend(trimmedEmail, password, role);
       if (res.success) {
-        localStorage.setItem("skill-role", role);
-        navigate(`/${role}/dashboard`);
+        const destRole = (res.user?.role as Role) || role;
+        localStorage.setItem("skill-role", destRole);
+        navigate(`/${destRole}/dashboard`);
       } else {
         if (res.retryAfterSeconds && res.retryAfterSeconds > 0) {
           setRetrySeconds(res.retryAfterSeconds);
