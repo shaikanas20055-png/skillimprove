@@ -2,14 +2,14 @@
 @import 'tailwindcss';
 
 :root {
-  /* Solid soft blue/teal educational background */
-  --soft: #edf5f8;
+  /* Solid color background: soft blue/teal educational theme */
+  --soft: #ebf3f7;
   --card-bg: #ffffff;
-  --ink: #0f1e2e;
-  --ink-secondary: #334e68;
-  --muted: #5a738e;
-  --line: #d1e2ec;
-  --line-light: #e4edf3;
+  --ink: #071626;
+  --ink-secondary: #21384e;
+  --muted: #4d677e;
+  --line: #cbe0eb;
+  --line-light: #e1edf4;
 
   /* Ecosystem Accent 1: Students (Academic Growth Green) */
   --student: #059669;
@@ -641,6 +641,63 @@ footer p { margin: 0; }
 .icon-btn { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.14); border-radius: 9px; color: #c7d6ee; background: rgba(255,255,255,.06); transition: all .15s ease; }
 .icon-btn:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.24); color: white; }
 .icon-btn i { position: absolute; width: 6px; height: 6px; top: 7px; right: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+/* Header Ecosystem Quick Switcher */
+.ecosystem-quick-switcher {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3px 5px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.eco-switch-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #9cb0d1;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  user-select: none;
+}
+.eco-switch-pill:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+.eco-switch-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+.eco-switch-pill.active.student {
+  background: rgba(5, 150, 105, 0.22);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #a7f3d0;
+}
+.eco-switch-pill.active.college {
+  background: rgba(29, 78, 216, 0.22);
+  border-color: rgba(59, 130, 246, 0.45);
+  color: #bfdbfe;
+}
+.eco-switch-pill.active.industry {
+  background: rgba(217, 119, 6, 0.22);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #fde68a;
+}
+@media (max-width: 900px) {
+  .ecosystem-quick-switcher {
+    display: none;
+  }
+}
+
 .user-chip { padding-left: 5px; display: flex; align-items: center; gap: 8px; }
 .user-chip > span, .table-avatar { width: 34px; height: 34px; display: inline-grid; place-items: center; flex: none; border-radius: 50%; color: white; background: transparent; }
 .user-chip strong, .user-chip small { max-width: 145px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
