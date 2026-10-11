@@ -1029,6 +1029,7 @@ function Login({
   navigate: (path: string) => void
   initialRole: Role
 }) {
+  const { isDark, toggleTheme } = useTheme()
   const [role, setRole] = useState<Role>(initialRole)
   const [email, setEmail] = useState(roleConfig[role].email)
   const [password, setPassword] = useState(roleConfig[role].password)
@@ -1118,7 +1119,17 @@ function Login({
   }
 
   return (
-    <div className="login-page">
+    <div className={`login-page ${isDark ? "theme-dark" : "theme-light"}`}>
+      {/* Dynamic Animated Background Scene */}
+      <div className="login-bg-scene" aria-hidden="true">
+        <div className="login-bg-gradient" />
+        <div className="login-bg-grid" />
+        <div className="login-ambient-orb orb-1" />
+        <div className="login-ambient-orb orb-2" />
+        <div className="login-ambient-orb orb-3" />
+        <div className="login-ambient-orb orb-4" />
+      </div>
+
       <div className="login-brand">
         <Logo dark />
         <div className="login-message">
@@ -1155,8 +1166,23 @@ function Login({
         </div>
       </div>
       <div className="login-panel">
+        <div className="login-top-actions">
+          <button
+            type="button"
+            className={`icon-btn theme-toggle-btn ${
+              isDark ? "is-dark" : "is-light"
+            }`}
+            aria-label={
+              isDark ? "Switch to light mode" : "Switch to dark mode"
+            }
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            onClick={toggleTheme}
+          >
+            <Icon name={isDark ? "sun" : "moon"} size={17} />
+          </button>
+        </div>
         <div className="login-mobile-logo">
-          <Logo />
+          <Logo dark={isDark} />
         </div>
         <div className="login-box">
           <span className="eyebrow">WELCOME TO SKILLIMPROVE</span>
