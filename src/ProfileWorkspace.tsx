@@ -1,4 +1,4 @@
-import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useRef, useState } from "react"
 import {
   saveStored,
   addStudentProject,
@@ -11,19 +11,20 @@ import {
   updateStudentCertificate,
   deleteStudentCertificate,
   StudentCertificate,
-} from "./app-data";
-import SkillAnalyticsCharts from "./SkillAnalyticsCharts";
+} from "./app-data"
+import SkillAnalyticsCharts from "./SkillAnalyticsCharts"
+import { UserAvatar } from "./UserAvatar"
 
 type Profile = {
-  name: string;
-  degree: string;
-  college: string;
-  location: string;
-  email: string;
-  linkedin: string;
-  github: string;
-  about: string;
-};
+  name: string
+  degree: string
+  college: string
+  location: string
+  email: string
+  linkedin: string
+  github: string
+  about: string
+}
 
 const defaultProfile: Profile = {
   name: "Alex Johnson",
@@ -35,22 +36,30 @@ const defaultProfile: Profile = {
   github: "github.com/alexj",
   about:
     "Computer Science student passionate about building useful, scalable web products. I enjoy turning complex problems into intuitive experiences and have hands-on experience across React, Node.js and Python.",
-};
-
-function download(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = name;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function Modal({ title, close, children }: { title: string; close: () => void; children: ReactNode }) {
-  const ref = useRef<HTMLDialogElement>(null);
+function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = name
+  link.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+function Modal({
+  title,
+  close,
+  children,
+}: {
+  title: string
+  close: () => void
+  children: ReactNode
+}) {
+  const ref = useRef<HTMLDialogElement>(null)
   useEffect(() => {
-    ref.current?.showModal();
-  }, []);
+    ref.current?.showModal()
+  }, [])
   return (
     <dialog
       ref={ref}
@@ -58,7 +67,7 @@ function Modal({ title, close, children }: { title: string; close: () => void; c
       aria-label={title}
       onCancel={close}
       onClick={(event) => {
-        if (event.target === event.currentTarget) close();
+        if (event.target === event.currentTarget) close()
       }}
     >
       <div className="modal-heading">
@@ -69,7 +78,7 @@ function Modal({ title, close, children }: { title: string; close: () => void; c
       </div>
       {children}
     </dialog>
-  );
+  )
 }
 
 export default function ProfileWorkspace({
@@ -77,98 +86,119 @@ export default function ProfileWorkspace({
   navigate,
   resume,
 }: {
-  focus: string;
-  navigate?: (path: string) => void;
-  resume?: (onFile: (file: File) => void) => ReactNode;
+  focus: string
+  navigate?: (path: string) => void
+  resume?: (onFile: (file: File) => void) => ReactNode
 }) {
   const [profile, setProfile] = useState<Profile>(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("skillimprove-profile") || "null");
+      const saved = JSON.parse(
+        localStorage.getItem("skillimprove-profile") || "null",
+      )
       return Object.fromEntries(
         Object.entries(defaultProfile).map(([key, value]) => [
           key,
           typeof saved?.[key] === "string" ? saved[key] : value,
-        ])
-      ) as Profile;
+        ]),
+      ) as Profile
     } catch {
-      return defaultProfile;
+      return defaultProfile
     }
-  });
+  })
 
-  const [draft, setDraft] = useState(profile);
-  const [modal, setModal] = useState<"edit" | "project" | "certificate" | null>(null);
-  const [editingProject, setEditingProject] = useState<StudentProject | null>(null);
-  const [editingCertificate, setEditingCertificate] = useState<StudentCertificate | null>(null);
+  const [draft, setDraft] = useState(profile)
+  const [modal, setModal] = useState<"edit" | "project" | "certificate" | null>(
+    null,
+  )
+  const [editingProject, setEditingProject] = useState<StudentProject | null>(
+    null,
+  )
+  const [editingCertificate, setEditingCertificate] =
+    useState<StudentCertificate | null>(null)
 
-  const allProjects = useProjects();
+  const allProjects = useProjects()
   const studentProjects = allProjects.filter(
-    (p) => p.studentName === profile.name || !p.studentName || p.studentName === "Alex Johnson"
-  );
-  const certificates = useCertificates();
+    (p) =>
+      p.studentName === profile.name ||
+      !p.studentName ||
+      p.studentName === "Alex Johnson",
+  )
+  const certificates = useCertificates()
 
-  const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
-  const attachments = useRef<string[]>([]);
+  const [notice, setNotice] = useState("")
+  const [error, setError] = useState("")
+  const attachments = useRef<string[]>([])
 
-  useEffect(() => () => attachments.current.forEach((url) => URL.revokeObjectURL(url)), []);
+  useEffect(
+    () => () => attachments.current.forEach((url) => URL.revokeObjectURL(url)),
+    [],
+  )
 
   useEffect(() => {
-    if (focus === "profile") return;
+    if (focus === "profile") return
     const frame = requestAnimationFrame(() =>
-      document.getElementById(`profile-${focus}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
-    );
-    return () => cancelAnimationFrame(frame);
-  }, [focus]);
+      document
+        .getElementById(`profile-${focus}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    )
+    return () => cancelAnimationFrame(frame)
+  }, [focus])
 
   const open = (next: "edit" | "project" | "certificate") => {
-    setDraft(profile);
-    setError("");
-    setModal(next);
-  };
+    setDraft(profile)
+    setError("")
+    setModal(next)
+  }
 
   const saveProfile = (event: FormEvent) => {
-    event.preventDefault();
+    event.preventDefault()
     const updated = Object.fromEntries(
-      Object.entries(draft).map(([key, value]) => [key, value.trim()])
-    ) as Profile;
-    if (!updated.name || !updated.degree || !updated.college || !updated.location || !updated.about) {
-      setError("Please complete all required profile fields.");
-      return;
+      Object.entries(draft).map(([key, value]) => [key, value.trim()]),
+    ) as Profile
+    if (
+      !updated.name ||
+      !updated.degree ||
+      !updated.college ||
+      !updated.location ||
+      !updated.about
+    ) {
+      setError("Please complete all required profile fields.")
+      return
     }
     try {
-      saveStored("skillimprove-profile", updated);
+      saveStored("skillimprove-profile", updated)
     } catch {
-      setError("Your browser could not save changes. Please try again.");
-      return;
+      setError("Your browser could not save changes. Please try again.")
+      return
     }
-    setProfile(updated);
-    setModal(null);
-    setNotice("Profile updated. Changes are saved in this browser.");
-  };
+    setProfile(updated)
+    setModal(null)
+    setNotice("Profile updated. Changes are saved in this browser.")
+  }
 
   // Add Project / Certificate Handler
   const uploadEvidence = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const title = String(data.get("title") || "").trim();
-    const detail = String(data.get("detail") || "").trim();
-    const issuer = String(data.get("issuer") || "").trim();
-    const issueDate = String(data.get("issueDate") || "").trim();
-    const credentialId = String(data.get("credentialId") || "").trim();
+    event.preventDefault()
+    const data = new FormData(event.currentTarget)
+    const title = String(data.get("title") || "").trim()
+    const detail = String(data.get("detail") || "").trim()
+    const issuer = String(data.get("issuer") || "").trim()
+    const issueDate = String(data.get("issueDate") || "").trim()
+    const credentialId = String(data.get("credentialId") || "").trim()
 
     if (!title || !detail) {
-      setError("Please provide a name and description.");
-      return;
+      setError("Please provide a name and description.")
+      return
     }
 
-    const file = data.get("attachment");
+    const file = data.get("attachment")
 
     if (modal === "project") {
-      let fileName = "project_source.zip";
-      let fileSize = "1.5 MB";
+      let fileName = "project_source.zip"
+      let fileSize = "1.5 MB"
       if (file instanceof File && file.size > 0) {
-        fileName = file.name;
-        fileSize = `${(file.size / 1024 / 1024).toFixed(1)} MB`;
+        fileName = file.name
+        fileSize = `${(file.size / 1024 / 1024).toFixed(1)} MB`
       }
 
       const possibleTags = [
@@ -184,9 +214,14 @@ export default function ProfileWorkspace({
         "JavaScript",
         "Next.js",
         "Tailwind CSS",
-      ];
-      const detectedTags = possibleTags.filter((t) => (title + " " + detail).toLowerCase().includes(t.toLowerCase()));
-      const finalTags = detectedTags.length > 0 ? detectedTags : ["Engineering", "Web Application"];
+      ]
+      const detectedTags = possibleTags.filter((t) =>
+        (title + " " + detail).toLowerCase().includes(t.toLowerCase()),
+      )
+      const finalTags =
+        detectedTags.length > 0
+          ? detectedTags
+          : ["Engineering", "Web Application"]
 
       addStudentProject({
         studentName: profile.name,
@@ -197,17 +232,19 @@ export default function ProfileWorkspace({
         tags: finalTags,
         fileName,
         fileSize,
-      });
-      setNotice("Project added! Submitted for verification.");
-      setModal(null);
+      })
+      setNotice("Project added! Submitted for verification.")
+      setModal(null)
     } else {
       // Certificate Upload: Process Image as picture preview
       if (file instanceof File && file.size > 0) {
-        const isImage = file.type.startsWith("image/") || /\.(png|jpe?g|webp|svg)$/i.test(file.name);
+        const isImage =
+          file.type.startsWith("image/") ||
+          /\.(png|jpe?g|webp|svg)$/i.test(file.name)
         if (isImage) {
-          const reader = new FileReader();
+          const reader = new FileReader()
           reader.onload = () => {
-            const imageUrl = String(reader.result || "");
+            const imageUrl = String(reader.result || "")
             addStudentCertificate({
               studentName: profile.name,
               title,
@@ -217,12 +254,12 @@ export default function ProfileWorkspace({
               description: detail,
               imageUrl,
               fileName: file.name,
-            });
-            setNotice("Certificate uploaded with picture preview!");
-            setModal(null);
-          };
-          reader.readAsDataURL(file);
-          return;
+            })
+            setNotice("Certificate uploaded with picture preview!")
+            setModal(null)
+          }
+          reader.readAsDataURL(file)
+          return
         }
       }
 
@@ -234,59 +271,73 @@ export default function ProfileWorkspace({
         credentialId: credentialId || undefined,
         description: detail,
         fileName: file instanceof File ? file.name : undefined,
-      });
-      setNotice("Certificate added successfully!");
-      setModal(null);
+      })
+      setNotice("Certificate added successfully!")
+      setModal(null)
     }
-  };
+  }
 
   // Edit Project Handler
   const handleSaveEditProject = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editingProject) return;
-    const form = new FormData(e.currentTarget);
-    const title = String(form.get("title") || "").trim();
-    const detail = String(form.get("detail") || "").trim();
-    const githubUrl = String(form.get("githubUrl") || "").trim();
-    const rawTags = String(form.get("tags") || "").trim();
+    e.preventDefault()
+    if (!editingProject) return
+    const form = new FormData(e.currentTarget)
+    const title = String(form.get("title") || "").trim()
+    const detail = String(form.get("detail") || "").trim()
+    const githubUrl = String(form.get("githubUrl") || "").trim()
+    const rawTags = String(form.get("tags") || "").trim()
 
     const tags = rawTags
-      ? rawTags.split(",").map((t) => t.trim()).filter(Boolean)
-      : editingProject.tags;
+      ? rawTags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+      : editingProject.tags
 
     updateStudentProject(editingProject.id, {
       title: title || editingProject.title,
       detail: detail || editingProject.detail,
       githubUrl: githubUrl || undefined,
       tags,
-    });
+    })
 
-    setNotice(`Project "${title || editingProject.title}" updated successfully.`);
-    setEditingProject(null);
-  };
+    setNotice(
+      `Project "${title || editingProject.title}" updated successfully.`,
+    )
+    setEditingProject(null)
+  }
 
   // Delete Project Handler
   const handleDeleteProject = (projId: string, projTitle: string) => {
-    if (window.confirm(`Are you sure you want to delete the project "${projTitle}"?`)) {
-      deleteStudentProject(projId);
-      setNotice(`Project "${projTitle}" has been deleted.`);
+    if (
+      window.confirm(
+        `Are you sure you want to delete the project "${projTitle}"?`,
+      )
+    ) {
+      deleteStudentProject(projId)
+      setNotice(`Project "${projTitle}" has been deleted.`)
     }
-  };
+  }
 
   // Edit Certificate Handler
   const handleSaveEditCertificate = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editingCertificate) return;
-    const form = new FormData(e.currentTarget);
-    const title = String(form.get("title") || "").trim();
-    const issuer = String(form.get("issuer") || "").trim();
-    const issueDate = String(form.get("issueDate") || "").trim();
-    const credentialId = String(form.get("credentialId") || "").trim();
-    const description = String(form.get("description") || "").trim();
-    const file = form.get("picture");
+    e.preventDefault()
+    if (!editingCertificate) return
+    const form = new FormData(e.currentTarget)
+    const title = String(form.get("title") || "").trim()
+    const issuer = String(form.get("issuer") || "").trim()
+    const issueDate = String(form.get("issueDate") || "").trim()
+    const credentialId = String(form.get("credentialId") || "").trim()
+    const description = String(form.get("description") || "").trim()
+    const file = form.get("picture")
 
-    if (file instanceof File && file.size > 0 && (file.type.startsWith("image/") || /\.(png|jpe?g|webp|svg)$/i.test(file.name))) {
-      const reader = new FileReader();
+    if (
+      file instanceof File &&
+      file.size > 0 &&
+      (file.type.startsWith("image/") ||
+        /\.(png|jpe?g|webp|svg)$/i.test(file.name))
+    ) {
+      const reader = new FileReader()
       reader.onload = () => {
         updateStudentCertificate(editingCertificate.id, {
           title: title || editingCertificate.title,
@@ -295,12 +346,12 @@ export default function ProfileWorkspace({
           credentialId: credentialId || undefined,
           description: description || editingCertificate.description,
           imageUrl: String(reader.result || ""),
-        });
-        setNotice(`Certificate "${title}" updated with new picture!`);
-        setEditingCertificate(null);
-      };
-      reader.readAsDataURL(file);
-      return;
+        })
+        setNotice(`Certificate "${title}" updated with new picture!`)
+        setEditingCertificate(null)
+      }
+      reader.readAsDataURL(file)
+      return
     }
 
     updateStudentCertificate(editingCertificate.id, {
@@ -309,49 +360,70 @@ export default function ProfileWorkspace({
       issueDate: issueDate || editingCertificate.issueDate,
       credentialId: credentialId || undefined,
       description: description || editingCertificate.description,
-    });
+    })
 
-    setNotice(`Certificate "${title}" updated successfully.`);
-    setEditingCertificate(null);
-  };
+    setNotice(`Certificate "${title}" updated successfully.`)
+    setEditingCertificate(null)
+  }
 
   // Delete Certificate Handler
   const handleDeleteCertificate = (certId: string, certTitle: string) => {
-    if (window.confirm(`Are you sure you want to delete the certificate "${certTitle}"?`)) {
-      deleteStudentCertificate(certId);
-      setNotice(`Certificate "${certTitle}" has been deleted.`);
+    if (
+      window.confirm(
+        `Are you sure you want to delete the certificate "${certTitle}"?`,
+      )
+    ) {
+      deleteStudentCertificate(certId)
+      setNotice(`Certificate "${certTitle}" has been deleted.`)
     }
-  };
+  }
 
   const downloadResume = () => {
-    const text = `${profile.name}\n${profile.degree}\n${profile.college} · ${profile.location}\n${profile.email}\n${profile.linkedin}\n${profile.github}\n\nABOUT\n${profile.about}\n\nSKILLS\nReact, JavaScript, TypeScript, Python, SQL, Git\n\nPROJECTS\n${studentProjects.map((project) => `${project.title} — ${project.detail}`).join("\n")}\n\nCERTIFICATIONS\n${certificates.map((cert) => `${cert.title} (${cert.issuer}) — ${cert.description}`).join("\n")}`;
-    download(new Blob([text], { type: "text/plain;charset=utf-8" }), `${profile.name.replace(/\s+/g, "_")}_Resume.txt`);
-    setNotice("Resume text downloaded successfully.");
-  };
+    const text = `${profile.name}\n${profile.degree}\n${profile.college} · ${profile.location}\n${profile.email}\n${profile.linkedin}\n${profile.github}\n\nABOUT\n${profile.about}\n\nSKILLS\nReact, JavaScript, TypeScript, Python, SQL, Git\n\nPROJECTS\n${studentProjects.map((project) => `${project.title} — ${project.detail}`).join("\n")}\n\nCERTIFICATIONS\n${certificates.map((cert) => `${cert.title} (${cert.issuer}) — ${cert.description}`).join("\n")}`
+    download(
+      new Blob([text], { type: "text/plain;charset=utf-8" }),
+      `${profile.name.replace(/\s+/g, "_")}_Resume.txt`,
+    )
+    setNotice("Resume text downloaded successfully.")
+  }
 
   return (
     <>
-      <div className="profile-hero">
-        <div className="profile-avatar">
-          {profile.name
-            .split(" ")
-            .map((name) => name[0])
-            .join("")
-            .slice(0, 2)}
+      <div className="profile-hero profile-account-card">
+        <div className="profile-account-avatar-wrapper">
+          <UserAvatar role="student" name={profile.name} size={78} showStatus />
+          <span
+            className="profile-verified-badge"
+            title="Verified Student Account"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m5 12 4 4L19 6" />
+            </svg>
+          </span>
         </div>
         <div className="profile-info">
-          <div>
+          <div className="profile-title-row">
             <h2>{profile.name}</h2>
-            <span className="badge badge-green">Verified student</span>
+            <span className="badge badge-green">Verified Student</span>
+            <span className="account-id-badge">ID: #SI-2025-082</span>
           </div>
           <p>{profile.degree}</p>
           <span>
             {profile.college} · {profile.location}
           </span>
           <div className="profile-links">
-            <span>{profile.email}</span>
-            <span>{profile.linkedin}</span>
-            <span>{profile.github}</span>
+            <span>✉️ {profile.email}</span>
+            <span>🔗 {profile.linkedin}</span>
+            <span>🐙 {profile.github}</span>
           </div>
         </div>
         <div className="profile-actions">
@@ -362,16 +434,23 @@ export default function ProfileWorkspace({
             Edit profile
           </button>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.35rem" }}>
-          <span className="badge badge-green">✓ Verified Student</span>
-          <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>2025 Cohort</small>
+        <div className="profile-cohort-badge">
+          <span className="badge badge-green">✓ Active Status</span>
+          <small>2025 Cohort</small>
         </div>
       </div>
 
       {notice && (
-        <div className="profile-notice" role="status" style={{ marginTop: "14px" }}>
+        <div
+          className="profile-notice"
+          role="status"
+          style={{ marginTop: "14px" }}
+        >
           {notice}
-          <button aria-label="Dismiss notification" onClick={() => setNotice("")}>
+          <button
+            aria-label="Dismiss notification"
+            onClick={() => setNotice("")}
+          >
             ×
           </button>
         </div>
@@ -438,28 +517,66 @@ export default function ProfileWorkspace({
 
           {/* PROJECTS SECTION WITH EDIT & DELETE */}
           <div id="profile-projects" style={{ marginTop: "24px" }}>
-            <div className="section-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div
+              className="section-title"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <div>
                 <h2>Projects ({studentProjects.length})</h2>
-                <p>Show what you’ve built with verified evidence. You can add, edit, or delete projects anytime.</p>
+                <p>
+                  Show what you’ve built with verified evidence. You can add,
+                  edit, or delete projects anytime.
+                </p>
               </div>
-              <button className="btn btn-secondary" onClick={() => open("project")}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => open("project")}
+              >
                 + Add project
               </button>
             </div>
 
             {studentProjects.map((proj) => (
-              <section className="card project-card" key={proj.id} style={{ marginBottom: "1.25rem", position: "relative" }}>
+              <section
+                className="card project-card"
+                key={proj.id}
+                style={{ marginBottom: "1.25rem", position: "relative" }}
+              >
                 <div className="project-cover">
-                  <span className={`badge ${proj.status === "verified" ? "badge-green" : "badge-orange"}`}>
+                  <span
+                    className={`badge ${
+                      proj.status === "verified"
+                        ? "badge-green"
+                        : "badge-orange"
+                    }`}
+                  >
                     {proj.status === "verified" ? "✓ Verified" : "Pending"}
                   </span>
-                  <strong style={{ fontSize: "14px", letterSpacing: "0.5px" }}>{proj.tags[0] || "PROJECT"}</strong>
+                  <strong style={{ fontSize: "14px", letterSpacing: "0.5px" }}>
+                    {proj.tags[0] || "PROJECT"}
+                  </strong>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
                   <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: "0.5rem",
+                      }}
+                    >
                       <div>
                         <span className="eyebrow">
                           {proj.status === "verified"
@@ -468,12 +585,29 @@ export default function ProfileWorkspace({
                         </span>
                         <h3 style={{ margin: "4px 0 8px" }}>{proj.title}</h3>
                       </div>
-                      <span className={`badge ${proj.status === "verified" ? "badge-green" : "badge-orange"}`}>
-                        {proj.status === "verified" ? "College Verified" : "Pending Verification"}
+                      <span
+                        className={`badge ${
+                          proj.status === "verified"
+                            ? "badge-green"
+                            : "badge-orange"
+                        }`}
+                      >
+                        {proj.status === "verified"
+                          ? "College Verified"
+                          : "Pending Verification"}
                       </span>
                     </div>
 
-                    <p style={{ margin: "0 0 10px", color: "#475569", fontSize: "13px", lineHeight: 1.6 }}>{proj.detail}</p>
+                    <p
+                      style={{
+                        margin: "0 0 10px",
+                        color: "#475569",
+                        fontSize: "13px",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {proj.detail}
+                    </p>
 
                     <div className="tag-row" style={{ marginBottom: "12px" }}>
                       {proj.tags.map((tag) => (
@@ -491,7 +625,11 @@ export default function ProfileWorkspace({
                             href={proj.githubUrl}
                             target="_blank"
                             rel="noreferrer"
-                            style={{ color: "#0284c7", textDecoration: "none", fontWeight: 600 }}
+                            style={{
+                              color: "#0284c7",
+                              textDecoration: "none",
+                              fontWeight: 600,
+                            }}
                           >
                             🔗 GitHub Repository
                           </a>
@@ -524,7 +662,13 @@ export default function ProfileWorkspace({
                       type="button"
                       className="btn btn-secondary"
                       onClick={() => setEditingProject(proj)}
-                      style={{ padding: "6px 14px", fontSize: "12px", display: "flex", alignItems: "center", gap: "5px" }}
+                      style={{
+                        padding: "6px 14px",
+                        fontSize: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                      }}
                     >
                       ✏️ Edit Project
                     </button>
@@ -550,27 +694,64 @@ export default function ProfileWorkspace({
               boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-              <span className="badge badge-purple" style={{ padding: "3px 8px", fontSize: "10px", fontWeight: 700 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "8px",
+              }}
+            >
+              <span
+                className="badge badge-purple"
+                style={{
+                  padding: "3px 8px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                }}
+              >
                 ⚡ ATS ENGINE
               </span>
-              <span className="badge badge-green" style={{ padding: "3px 8px", fontSize: "10px" }}>
+              <span
+                className="badge badge-green"
+                style={{ padding: "3px 8px", fontSize: "10px" }}
+              >
                 Standalone Tool
               </span>
             </div>
-            <h3 style={{ margin: "0 0 6px", fontSize: "16px", color: "#0f172a", fontWeight: 800 }}>
+            <h3
+              style={{
+                margin: "0 0 6px",
+                fontSize: "16px",
+                color: "#0f172a",
+                fontWeight: 800,
+              }}
+            >
               Resume Analyzer (ATS)
             </h3>
-            <p style={{ margin: "0 0 14px", color: "#64748b", fontSize: "12px", lineHeight: 1.5 }}>
-              Test your resume against real software engineering roles. Computes role-specific ATS match scores, detects missing core skills, and suggests target keywords.
+            <p
+              style={{
+                margin: "0 0 14px",
+                color: "#64748b",
+                fontSize: "12px",
+                lineHeight: 1.5,
+              }}
+            >
+              Test your resume against real software engineering roles. Computes
+              role-specific ATS match scores, detects missing core skills, and
+              suggests target keywords.
             </p>
             <button
               type="button"
               className="btn btn-primary"
-              style={{ width: "100%", justifyContent: "center", fontSize: "13px" }}
+              style={{
+                width: "100%",
+                justifyContent: "center",
+                fontSize: "13px",
+              }}
               onClick={() => {
-                if (navigate) navigate("/student/resume-analyzer");
-                else window.location.hash = "/student/resume-analyzer";
+                if (navigate) navigate("/student/resume-analyzer")
+                else window.location.hash = "/student/resume-analyzer"
               }}
             >
               Open Resume Analyzer (ATS) →
@@ -579,24 +760,50 @@ export default function ProfileWorkspace({
 
           {/* CERTIFICATES SECTION WITH PICTURE & DESCRIPTION, EDIT & DELETE */}
           <div id="profile-certifications">
-            <section className="card profile-section-card" style={{ padding: "20px" }}>
+            <section
+              className="card profile-section-card"
+              style={{ padding: "20px" }}
+            >
               <div
                 className="section-title"
-                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                }}
               >
                 <div>
-                  <h2 style={{ fontSize: "16px", margin: 0 }}>Certificates ({certificates.length})</h2>
-                  <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0" }}>
+                  <h2 style={{ fontSize: "16px", margin: 0 }}>
+                    Certificates ({certificates.length})
+                  </h2>
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      color: "#64748b",
+                      margin: "2px 0 0",
+                    }}
+                  >
                     Verified credentials with visual picture & description
                   </p>
                 </div>
-                <button className="btn btn-secondary" onClick={() => open("certificate")} style={{ padding: "6px 12px", fontSize: "12px" }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => open("certificate")}
+                  style={{ padding: "6px 12px", fontSize: "12px" }}
+                >
                   + Upload certificate
                 </button>
               </div>
 
               {/* Certificates Cards Grid */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "14px",
+                }}
+              >
                 {certificates.map((cert) => (
                   <div
                     key={cert.id}
@@ -629,13 +836,29 @@ export default function ProfileWorkspace({
                           style={{
                             position: "absolute",
                             inset: 0,
-                            background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 70%)",
+                            background:
+                              "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 70%)",
                           }}
                         />
                       ) : (
-                        <div style={{ textAlign: "center", color: "white", padding: "10px" }}>
-                          <span style={{ fontSize: "32px", display: "block" }}>📜</span>
-                          <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" }}>
+                        <div
+                          style={{
+                            textAlign: "center",
+                            color: "white",
+                            padding: "10px",
+                          }}
+                        >
+                          <span style={{ fontSize: "32px", display: "block" }}>
+                            📜
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: 700,
+                              letterSpacing: "1px",
+                              textTransform: "uppercase",
+                            }}
+                          >
                             {cert.issuer}
                           </span>
                         </div>
@@ -673,19 +896,49 @@ export default function ProfileWorkspace({
 
                     {/* Certificate Body (Description & Meta) */}
                     <div style={{ padding: "14px" }}>
-                      <h4 style={{ margin: "0 0 4px", fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>
+                      <h4
+                        style={{
+                          margin: "0 0 4px",
+                          fontSize: "14px",
+                          fontWeight: 700,
+                          color: "#0f172a",
+                        }}
+                      >
                         {cert.title}
                       </h4>
-                      <div style={{ fontSize: "11px", color: "#0284c7", fontWeight: 600, marginBottom: "6px" }}>
+                      <div
+                        style={{
+                          fontSize: "11px",
+                          color: "#0284c7",
+                          fontWeight: 600,
+                          marginBottom: "6px",
+                        }}
+                      >
                         🏛️ {cert.issuer}
                       </div>
 
-                      <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#475569", lineHeight: 1.5 }}>
+                      <p
+                        style={{
+                          margin: "0 0 10px",
+                          fontSize: "12px",
+                          color: "#475569",
+                          lineHeight: 1.5,
+                        }}
+                      >
                         {cert.description}
                       </p>
 
                       {cert.credentialId && (
-                        <div style={{ fontSize: "10px", color: "#64748b", background: "#f8fafc", padding: "4px 8px", borderRadius: "4px", marginBottom: "10px" }}>
+                        <div
+                          style={{
+                            fontSize: "10px",
+                            color: "#64748b",
+                            background: "#f8fafc",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            marginBottom: "10px",
+                          }}
+                        >
                           <strong>Credential ID:</strong> {cert.credentialId}
                         </div>
                       )}
@@ -703,7 +956,13 @@ export default function ProfileWorkspace({
                           type="button"
                           className="btn btn-secondary"
                           onClick={() => setEditingCertificate(cert)}
-                          style={{ padding: "5px 12px", fontSize: "11px", display: "flex", alignItems: "center", gap: "4px" }}
+                          style={{
+                            padding: "5px 12px",
+                            fontSize: "11px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
                         >
                           ✏️ Edit Certificate
                         </button>
@@ -738,10 +997,10 @@ export default function ProfileWorkspace({
         <Modal title="Edit your profile" close={() => setModal(null)}>
           <form onSubmit={saveProfile}>
             <div className="form-grid">
-              {(Object.keys(defaultProfile) as (keyof Profile)[]).map((key) => (
+              {(Object.keys(defaultProfile) as keyof Profile[]).map((key) => (
                 <label key={key} className={key === "about" ? "wide" : ""}>
                   {
-                    ({
+                    {
                       name: "Full name",
                       degree: "Degree and year",
                       college: "College",
@@ -750,20 +1009,24 @@ export default function ProfileWorkspace({
                       linkedin: "LinkedIn",
                       github: "GitHub",
                       about: "About me",
-                    })[key]
+                    }[key]
                   }
                   {key === "about" ? (
                     <textarea
                       required
                       value={draft[key]}
-                      onChange={(event) => setDraft({ ...draft, [key]: event.target.value })}
+                      onChange={(event) =>
+                        setDraft({ ...draft, [key]: event.target.value })
+                      }
                     />
                   ) : (
                     <input
                       required={key !== "linkedin" && key !== "github"}
                       type={key === "email" ? "email" : "text"}
                       value={draft[key]}
-                      onChange={(event) => setDraft({ ...draft, [key]: event.target.value })}
+                      onChange={(event) =>
+                        setDraft({ ...draft, [key]: event.target.value })
+                      }
                     />
                   )}
                 </label>
@@ -775,7 +1038,11 @@ export default function ProfileWorkspace({
               </p>
             )}
             <div className="modal-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => setModal(null)}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setModal(null)}
+              >
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
@@ -793,7 +1060,11 @@ export default function ProfileWorkspace({
             <div className="form-grid">
               <label className="wide">
                 Project Name
-                <input name="title" required placeholder="E.g., AI Career Guidance Platform" />
+                <input
+                  name="title"
+                  required
+                  placeholder="E.g., AI Career Guidance Platform"
+                />
               </label>
               <label className="wide">
                 Description and Key Outcomes
@@ -805,7 +1076,11 @@ export default function ProfileWorkspace({
               </label>
               <label className="wide">
                 Supporting File / Source Code (ZIP, PDF, or image)
-                <input name="attachment" type="file" accept=".pdf,.zip,.png,.jpg,.jpeg" />
+                <input
+                  name="attachment"
+                  type="file"
+                  accept=".pdf,.zip,.png,.jpg,.jpeg"
+                />
               </label>
             </div>
             {error && (
@@ -814,7 +1089,11 @@ export default function ProfileWorkspace({
               </p>
             )}
             <div className="modal-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => setModal(null)}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setModal(null)}
+              >
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
@@ -832,11 +1111,19 @@ export default function ProfileWorkspace({
             <div className="form-grid">
               <label className="wide">
                 Certificate Title
-                <input name="title" required placeholder="E.g., AWS Certified Solutions Architect" />
+                <input
+                  name="title"
+                  required
+                  placeholder="E.g., AWS Certified Solutions Architect"
+                />
               </label>
               <label>
                 Issuing Organization
-                <input name="issuer" required placeholder="E.g., Amazon Web Services (AWS), Meta, Google" />
+                <input
+                  name="issuer"
+                  required
+                  placeholder="E.g., Amazon Web Services (AWS), Meta, Google"
+                />
               </label>
               <label>
                 Issue Date
@@ -859,8 +1146,12 @@ export default function ProfileWorkspace({
                 <input name="attachment" type="file" accept="image/*,.pdf" />
               </label>
             </div>
-            <p className="upload-help" style={{ fontSize: "11px", color: "#64748b", margin: "8px 0" }}>
-              Upload a picture (.png, .jpg) to show your certificate badge prominently with description.
+            <p
+              className="upload-help"
+              style={{ fontSize: "11px", color: "#64748b", margin: "8px 0" }}
+            >
+              Upload a picture (.png, .jpg) to show your certificate badge
+              prominently with description.
             </p>
             {error && (
               <p role="alert" className="form-error">
@@ -868,7 +1159,11 @@ export default function ProfileWorkspace({
               </p>
             )}
             <div className="modal-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => setModal(null)}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setModal(null)}
+              >
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
@@ -881,20 +1176,35 @@ export default function ProfileWorkspace({
 
       {/* EDIT EXISTING PROJECT MODAL */}
       {editingProject && (
-        <Modal title={`Edit Project: ${editingProject.title}`} close={() => setEditingProject(null)}>
+        <Modal
+          title={`Edit Project: ${editingProject.title}`}
+          close={() => setEditingProject(null)}
+        >
           <form onSubmit={handleSaveEditProject}>
             <div className="form-grid">
               <label className="wide">
                 Project Name
-                <input name="title" defaultValue={editingProject.title} required />
+                <input
+                  name="title"
+                  defaultValue={editingProject.title}
+                  required
+                />
               </label>
               <label className="wide">
                 Description
-                <textarea name="detail" defaultValue={editingProject.detail} required rows={4} />
+                <textarea
+                  name="detail"
+                  defaultValue={editingProject.detail}
+                  required
+                  rows={4}
+                />
               </label>
               <label className="wide">
                 Technologies / Tags (comma separated)
-                <input name="tags" defaultValue={editingProject.tags.join(", ")} />
+                <input
+                  name="tags"
+                  defaultValue={editingProject.tags.join(", ")}
+                />
               </label>
               <label className="wide">
                 GitHub Repository URL
@@ -920,8 +1230,8 @@ export default function ProfileWorkspace({
                 type="button"
                 className="btn btn-ghost"
                 onClick={() => {
-                  handleDeleteProject(editingProject.id, editingProject.title);
-                  setEditingProject(null);
+                  handleDeleteProject(editingProject.id, editingProject.title)
+                  setEditingProject(null)
                 }}
                 style={{
                   color: "#ef4444",
@@ -935,7 +1245,11 @@ export default function ProfileWorkspace({
                 🗑️ Delete Project
               </button>
               <div style={{ display: "flex", gap: "8px" }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setEditingProject(null)}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditingProject(null)}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
@@ -949,28 +1263,50 @@ export default function ProfileWorkspace({
 
       {/* EDIT EXISTING CERTIFICATE MODAL */}
       {editingCertificate && (
-        <Modal title={`Edit Certificate: ${editingCertificate.title}`} close={() => setEditingCertificate(null)}>
+        <Modal
+          title={`Edit Certificate: ${editingCertificate.title}`}
+          close={() => setEditingCertificate(null)}
+        >
           <form onSubmit={handleSaveEditCertificate}>
             <div className="form-grid">
               <label className="wide">
                 Certificate Title
-                <input name="title" defaultValue={editingCertificate.title} required />
+                <input
+                  name="title"
+                  defaultValue={editingCertificate.title}
+                  required
+                />
               </label>
               <label>
                 Issuing Organization
-                <input name="issuer" defaultValue={editingCertificate.issuer} required />
+                <input
+                  name="issuer"
+                  defaultValue={editingCertificate.issuer}
+                  required
+                />
               </label>
               <label>
                 Issue Date
-                <input name="issueDate" defaultValue={editingCertificate.issueDate || ""} />
+                <input
+                  name="issueDate"
+                  defaultValue={editingCertificate.issueDate || ""}
+                />
               </label>
               <label className="wide">
                 Credential ID (Optional)
-                <input name="credentialId" defaultValue={editingCertificate.credentialId || ""} />
+                <input
+                  name="credentialId"
+                  defaultValue={editingCertificate.credentialId || ""}
+                />
               </label>
               <label className="wide">
                 Description
-                <textarea name="description" defaultValue={editingCertificate.description} required rows={3} />
+                <textarea
+                  name="description"
+                  defaultValue={editingCertificate.description}
+                  required
+                  rows={3}
+                />
               </label>
               <label className="wide">
                 Replace Picture (Optional)
@@ -991,8 +1327,11 @@ export default function ProfileWorkspace({
                 type="button"
                 className="btn btn-ghost"
                 onClick={() => {
-                  handleDeleteCertificate(editingCertificate.id, editingCertificate.title);
-                  setEditingCertificate(null);
+                  handleDeleteCertificate(
+                    editingCertificate.id,
+                    editingCertificate.title,
+                  )
+                  setEditingCertificate(null)
                 }}
                 style={{
                   color: "#ef4444",
@@ -1006,7 +1345,11 @@ export default function ProfileWorkspace({
                 🗑️ Delete Certificate
               </button>
               <div style={{ display: "flex", gap: "8px" }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setEditingCertificate(null)}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditingCertificate(null)}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
@@ -1018,5 +1361,5 @@ export default function ProfileWorkspace({
         </Modal>
       )}
     </>
-  );
+  )
 }
