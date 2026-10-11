@@ -170,7 +170,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
         <div style={{ maxWidth: "720px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
             <span className="badge badge-purple" style={{ padding: "4px 10px", fontWeight: 700, fontSize: "11px" }}>
-              ⚡ ATS RESUME ANALYZER
+              ATS RESUME ANALYZER
             </span>
             <span className="badge badge-blue" style={{ padding: "4px 10px", fontSize: "11px" }}>
               Industry Hiring Standards
@@ -192,7 +192,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
             onClick={() => setShowTextModal(true)}
             style={{ display: "flex", alignItems: "center", gap: "6px" }}
           >
-            ✏️ View / Edit Resume Text
+            View / Edit Resume Text
           </button>
           <button
             type="button"
@@ -204,7 +204,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
             }}
             style={{ display: "flex", alignItems: "center", gap: "6px" }}
           >
-            📄 Load Demo Resume
+            Load Demo Resume
           </button>
         </div>
       </div>
@@ -328,7 +328,13 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
                 transition: "all 0.2s ease",
               }}
             >
-              <div style={{ fontSize: "28px", marginBottom: "6px" }}>📂</div>
+              <div style={{ marginBottom: "8px", display: "flex", justifyContent: "center" }}>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" style={{ color: "#2563eb" }}>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
               <strong style={{ display: "block", fontSize: "13px", color: "#1e293b", marginBottom: "4px" }}>
                 Drag and drop your resume file
               </strong>
@@ -370,7 +376,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
                 fontSize: "12px",
               }}
             >
-              <span style={{ color: "#334155", fontWeight: 600 }}>📄 {uploadedFileName}</span>
+              <span style={{ color: "#334155", fontWeight: 600 }}>{uploadedFileName}</span>
               <span style={{ color: "#64748b", fontSize: "11px" }}>
                 {result ? result.resumeHighlights.wordCount : wordCount} words detected
               </span>
@@ -528,11 +534,11 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
         {/* Tab Navigation */}
         <div className="ats-tabs-nav" style={{ display: "flex", borderBottom: "1px solid #e2e8f0", gap: "10px", marginBottom: "20px" }}>
           {[
-            { id: "overview", label: "Overview & Summary", icon: "📊" },
-            { id: "matched", label: `Matched Skills (${result.matchedSkills.length})`, icon: "✓" },
-            { id: "missing", label: `Missing Skills (${result.missingCoreSkills.length + result.missingImportantSkills.length})`, icon: "⚠️" },
-            { id: "keywords", label: `ATS Keywords (${result.missingKeywords.length} missing)`, icon: "🔍" },
-            { id: "recommendations", label: `Recommendations (${result.recommendations.length})`, icon: "💡" },
+            { id: "overview", label: "Overview & Summary" },
+            { id: "matched", label: `Matched Skills (${result.matchedSkills.length})` },
+            { id: "missing", label: `Missing Skills (${result.missingCoreSkills.length + result.missingImportantSkills.length})` },
+            { id: "keywords", label: `ATS Keywords (${result.missingKeywords.length} missing)` },
+            { id: "recommendations", label: `Recommendations (${result.recommendations.length})` },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -552,7 +558,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
                 gap: "6px",
               }}
             >
-              <span>{tab.icon}</span> {tab.label}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -717,7 +723,7 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
 
               {result.missingCoreSkills.length === 0 ? (
                 <div style={{ padding: "14px", background: "#f0fdf4", borderRadius: "8px", color: "#166534", fontSize: "13px" }}>
-                  🎉 Great job! No critical core skills are missing for the {selectedRole.name} profile.
+                  Great job! No critical core skills are missing for the {selectedRole.name} profile.
                 </div>
               ) : (
                 <div className="ats-skills-two-col">
@@ -914,10 +920,13 @@ export default function ResumeAnalyzerATS({ navigate }: { navigate?: (path: stri
               color: "#2563eb",
               display: "grid",
               placeItems: "center",
-              fontSize: "30px",
             }}
           >
-            🎯
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="6" />
+              <circle cx="12" cy="12" r="2" />
+            </svg>
           </div>
           <h3 style={{ margin: "0 0 8px", fontSize: "19px", fontWeight: 800, color: "#1e293b" }}>
             Ready for ATS Match & Scoring

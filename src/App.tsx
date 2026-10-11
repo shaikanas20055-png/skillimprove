@@ -1683,17 +1683,17 @@ function ResumeViewerModal({
           <h2>{candidateName}</h2>
           <div className="resume-doc-contact">
             <span>
-              📧 {candidateName.toLowerCase().replace(/\s+/g, ".")}
+              {candidateName.toLowerCase().replace(/\s+/g, ".")}
               @student.apex.edu
             </span>
-            <span>📱 +91 98765 43210</span>
-            <span>📍 Bengaluru, India</span>
+            <span>+91 98765 43210</span>
+            <span>Bengaluru, India</span>
             <span>
-              🔗 github.com/{candidateName.toLowerCase().replace(/\s+/g, "")}
+              github.com/{candidateName.toLowerCase().replace(/\s+/g, "")}
               -dev
             </span>
             <span>
-              💼 linkedin.com/in/
+              linkedin.com/in/
               {candidateName.toLowerCase().replace(/\s+/g, "")}
             </span>
           </div>
@@ -5169,7 +5169,7 @@ function CandidateCard({
         <div>
           <h3>{name}</h3>
           <p>ABC Institute of Technology</p>
-          <small style={{ color: "#475569" }}>✉️ {candidateEmail}</small>
+          <small style={{ color: "#475569" }}>{candidateEmail}</small>
         </div>
         <Badge tone="green">{match}% match</Badge>
       </div>
@@ -5593,7 +5593,7 @@ function CandidateProfile({
             </div>
             <p>B.Tech Computer Science · ABC Institute of Technology</p>
             <small>
-              Graduating 2025 · Bengaluru, India · ✉️ {candidateEmail}
+              Graduating 2025 · Bengaluru, India · {candidateEmail}
             </small>
           </div>
           <div className="profile-actions">
@@ -6327,7 +6327,7 @@ function SkillDemandAnalytics({
             variant="secondary"
             onClick={() => {
               exportSkillDemandReport()
-              triggerToast("📥 Skill demand report downloaded successfully!")
+              triggerToast("Skill demand report downloaded successfully!")
             }}
             title="Download complete market skill demand report to Excel / CSV"
           >
@@ -6841,16 +6841,16 @@ function SkillDemandAnalytics({
               <div style={{ color: "#475569", flex: 1, minWidth: "240px" }}>
                 {role === "student" ? (
                   <>
-                    🎯 <strong>Action for You:</strong> {item.studentGuidance}
+                    <strong>Action for You:</strong> {item.studentGuidance}
                   </>
                 ) : role === "college" ? (
                   <>
-                    🎓 <strong>Curriculum Strategy:</strong>{" "}
+                    <strong>Curriculum Strategy:</strong>{" "}
                     {item.collegeAction}
                   </>
                 ) : (
                   <>
-                    💼 <strong>Hiring Advice:</strong> {item.industryAction}
+                    <strong>Hiring Advice:</strong> {item.industryAction}
                   </>
                 )}
               </div>
@@ -7303,7 +7303,7 @@ function MatchedStudents({
                       {student.degree} · {student.college}
                     </p>
                     <small style={{ color: "#475569", display: "block" }}>
-                      ✉️ {studentEmail} · Location: {student.location} ·{" "}
+                      {studentEmail} · Location: {student.location} ·{" "}
                       {student.internships} completed internship
                     </small>
                   </div>
@@ -7548,7 +7548,7 @@ function MatchedStudents({
                       }))
                       setNotice(
                         nowSaved
-                          ? `✅ ${student.name} added to Shortlist. Candidate name and email recorded in Excel roster.`
+                          ? `${student.name} added to Shortlist. Candidate name and email recorded in Excel roster.`
                           : `${student.name} removed from shortlist.`,
                       )
                     }}

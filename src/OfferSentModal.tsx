@@ -152,7 +152,7 @@ export function OfferSentModal({ payload, close }: OfferSentModalProps) {
                   transition: "all 0.15s ease",
                 }}
               >
-                {copied ? "✓ Copied to Clipboard" : "📋 Copy Message"}
+                {copied ? "✓ Copied to Clipboard" : "Copy Message"}
               </button>
             </div>
             <pre
@@ -210,7 +210,8 @@ export function OfferSentModal({ payload, close }: OfferSentModalProps) {
                 boxShadow: "0 2px 4px rgba(220, 38, 38, 0.25)",
               }}
             >
-              <span>✉️ Open in Gmail Web</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              <span>Open in Gmail Web</span>
             </a>
             <button
               onClick={close}

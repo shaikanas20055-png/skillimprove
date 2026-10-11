@@ -30,7 +30,7 @@ if (isFirebaseConfigured) {
   try {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     auth = getAuth(app);
-    console.log("🔥 Firebase Web Client initialized successfully!");
+    console.log("[Firebase] Web Client initialized successfully!");
   } catch (err) {
     console.warn("Firebase client initialization warning:", err);
   }

@@ -32,7 +32,7 @@ export function getFirebaseAdmin(): { app: App | null; auth: Auth | null; isConf
         firebaseAdminApp = getApps()[0];
       }
       firebaseAuth = getAuth(firebaseAdminApp);
-      console.log("🔒 Firebase Admin SDK initialized successfully for project:", projectId);
+      console.log("[Firebase Admin] SDK initialized successfully for project:", projectId);
       return { app: firebaseAdminApp, auth: firebaseAuth, isConfigured: true };
     } catch (err) {
       logServerError("FirebaseAdminInit", err);

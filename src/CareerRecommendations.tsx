@@ -499,19 +499,19 @@ export default function CareerRecommendations({ initialRoleQuery = "Data Analyst
                       {isReady && (
                         <span className="status-indicator ready">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                          ✓ Ready
+                          Ready
                         </span>
                       )}
                       {isImprove && (
                         <span className="status-indicator improve">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-                          ⚠ Improve
+                          Improve
                         </span>
                       )}
                       {isGap && (
                         <span className="status-indicator gap">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                          ❌ Gap
+                          Gap
                         </span>
                       )}
                     </td>
@@ -553,9 +553,9 @@ export default function CareerRecommendations({ initialRoleQuery = "Data Analyst
 
         {/* Legend */}
         <div className="match-legend">
-          <span><b className="legend-dot green" /> ✓ Ready: Meets or exceeds role requirement</span>
-          <span><b className="legend-dot orange" /> ⚠ Improve: Prior knowledge, needs depth</span>
-          <span><b className="legend-dot red" /> ❌ Gap: Required skill currently missing</span>
+          <span><b className="legend-dot green" /> Ready: Meets or exceeds role requirement</span>
+          <span><b className="legend-dot orange" /> Improve: Prior knowledge, needs depth</span>
+          <span><b className="legend-dot red" /> Gap: Required skill currently missing</span>
         </div>
       </section>
 
@@ -584,7 +584,7 @@ export default function CareerRecommendations({ initialRoleQuery = "Data Analyst
               <div key={gap.skill} className="gap-callout-pill red-border">
                 <span className="dot red-dot" />
                 <div className="gap-callout-main">
-                  <strong>🔴 {gap.skill}</strong>
+                  <strong>{gap.skill}</strong>
                   <div className="gap-level-comparison">
                     <span>Current: <em>No experience</em></span>
                     <span className="arrow">→</span>
@@ -599,7 +599,7 @@ export default function CareerRecommendations({ initialRoleQuery = "Data Analyst
               <div key={gap.skill} className="gap-callout-pill orange-border">
                 <span className="dot orange-dot" />
                 <div className="gap-callout-main">
-                  <strong>🟠 {gap.skill}</strong>
+                  <strong>{gap.skill}</strong>
                   <div className="gap-level-comparison">
                     <span>Current: <em>{gap.studentLevel}</em></span>
                     <span className="arrow">→</span>

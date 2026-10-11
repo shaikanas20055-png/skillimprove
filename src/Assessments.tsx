@@ -293,7 +293,10 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                 animation: timeLeft <= 60 ? "pulse 1s infinite" : undefined,
               }}
             >
-              <span style={{ fontSize: "18px" }}>⏱️</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: timeLeft <= 60 ? "#ef4444" : timeLeft <= 180 ? "#b45309" : "#64748b" }}>
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
               <div>
                 <small
                   style={{
@@ -380,14 +383,14 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                   }}
                 >
                   {currentQ.type === "fill-in-the-blank"
-                    ? "✏️ Fill in the Blank"
+                    ? "Fill in the Blank"
                     : currentQ.type === "multiple-choice"
-                    ? "🔘 Multiple Choice"
+                    ? "Multiple Choice"
                     : currentQ.type === "code-output"
-                    ? "💻 Code Output"
+                    ? "Code Output"
                     : currentQ.type === "debugging"
-                    ? "🐞 Code Completion / Debug"
-                    : "🏢 Scenario Problem"}
+                    ? "Code Completion / Debug"
+                    : "Scenario Problem"}
                 </span>
               </div>
 
@@ -500,7 +503,7 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                     }}
                   />
                   <small style={{ display: "block", marginTop: "6px", color: "#64748b", fontSize: "11px" }}>
-                    💡 Tip: Answers are case-insensitive. Semicolons and extra whitespace are automatically tolerated.
+                    Tip: Answers are case-insensitive. Semicolons and extra whitespace are automatically tolerated.
                   </small>
                 </div>
               )}
@@ -644,7 +647,7 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                 You have answered <strong>{answeredCount}</strong> out of <strong>{questions.length}</strong> questions.
                 {questions.length - answeredCount > 0 && (
                   <span style={{ display: "block", marginTop: "6px", color: "#dc2626", fontWeight: 600 }}>
-                    ⚠️ {questions.length - answeredCount} unanswered questions will be marked as 0 marks.
+                    Notice: {questions.length - answeredCount} unanswered questions will be marked as 0 marks.
                   </span>
                 )}
               </p>
@@ -723,10 +726,10 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
               style={{ marginTop: "8px", fontSize: "12px", padding: "4px 12px" }}
             >
               {attemptToView.score >= 79
-                ? "🏆 High Performing (Advanced Track)"
+                ? "High Performing (Advanced Track)"
                 : attemptToView.score >= 75
-                ? "✨ Proficient (Mixed Track)"
-                : "📈 Developing (Needs Improvement Track)"}
+                ? "Proficient (Mixed Track)"
+                : "Developing (Needs Improvement Track)"}
             </span>
           </div>
 
@@ -764,7 +767,9 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-              <span style={{ fontSize: "18px" }}>🤖</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#4338ca" }}>
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+              </svg>
               <strong style={{ fontSize: "14px", color: "var(--ink)" }}>Gemini AI Assessment Evaluation & Recommendations</strong>
             </div>
             <p style={{ margin: "0 0 12px", fontSize: "13px", color: "#334155", lineHeight: "1.5" }}>
@@ -789,7 +794,7 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                     borderRadius: "6px",
                   }}
                 >
-                  📌 {topic}
+                  {topic}
                 </span>
               ))}
             </div>
@@ -879,7 +884,7 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                     )}
 
                     <p style={{ margin: "8px 0 0", fontSize: "12px", color: "#475569", lineHeight: "1.4" }}>
-                      💡 {q.explanation}
+                      <strong>Explanation:</strong> {q.explanation}
                     </p>
                   </div>
                 );
@@ -912,7 +917,7 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                 }
               }}
             >
-              🔄 Do Again (New Attempt)
+              Retake Assessment (New Attempt)
             </button>
 
             <button className="btn btn-secondary" onClick={() => navigate("/student/recommendations")}>
@@ -1068,7 +1073,24 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                 {/* Header Row */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <span style={{ fontSize: "24px" }}>{role.icon}</span>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "8px",
+                        background: "#eff6ff",
+                        color: "#2563eb",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        letterSpacing: "0.03em",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {role.icon}
+                    </span>
                     <div>
                       <h3 style={{ margin: 0, fontSize: "16px", color: "var(--ink)", fontWeight: 700 }}>{role.title}</h3>
                       <small style={{ color: "#64748b", fontSize: "11px" }}>{role.category}</small>
@@ -1150,10 +1172,10 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                     marginBottom: "14px",
                   }}
                 >
-                  <span>⏱️ 10 Minutes</span>
-                  <span>📝 30 Questions</span>
+                  <span>10 Minutes</span>
+                  <span>30 Questions</span>
                   <span style={{ fontWeight: 600, color: currentDifficulty === "Advanced" ? "#7c3aed" : "#0284c7" }}>
-                    🎯 {currentDifficulty}
+                    {currentDifficulty}
                   </span>
                 </div>
 
@@ -1197,7 +1219,7 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                       style={{ flex: 1.3, fontSize: "12px", padding: "7px 10px", background: "linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)", color: "#fff" }}
                       onClick={() => handleInitiateAssessment(role)}
                     >
-                      🔄 Do Again
+                      Retake Assessment
                     </button>
                   </>
                 ) : (
@@ -1230,7 +1252,24 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
         >
           <div className="card" style={{ maxWidth: "520px", width: "100%", padding: "28px", borderRadius: "16px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
-              <span style={{ fontSize: "32px" }}>{activeRole.icon}</span>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "44px",
+                  height: "44px",
+                  borderRadius: "10px",
+                  background: "#eff6ff",
+                  color: "#2563eb",
+                  fontSize: "15px",
+                  fontWeight: 700,
+                  letterSpacing: "0.03em",
+                  flexShrink: 0,
+                }}
+              >
+                {activeRole.icon}
+              </span>
               <div>
                 <h3 style={{ margin: 0, fontSize: "18px", color: "var(--ink)" }}>{activeRole.title} Assessment</h3>
                 <small style={{ color: "#64748b" }}>{activeRole.category}</small>
@@ -1248,7 +1287,7 @@ export default function Assessments({ navigate }: { navigate: (path: string) => 
                 color: "#92400e",
               }}
             >
-              ⚠️ <strong>Strict 10-Minute Timer Notice:</strong>
+              <strong>Strict 10-Minute Timer Notice:</strong>
               <p style={{ margin: "4px 0 0", fontSize: "12px", lineHeight: "1.4" }}>
                 This is a timed assessment. The countdown starts immediately at <strong>10:00</strong>. When the timer reaches zero, your answers are automatically submitted.
               </p>
