@@ -483,41 +483,6 @@ function Landing({ navigate }: { navigate: (path: string) => void }) {
             <a href="#how">How it works</a>
             <a href="#features">Features</a>
             <a href="#ecosystem">Ecosystems</a>
-            <div className="nav-eco-group">
-              <span
-                className="nav-eco-pill student"
-                onClick={() => {
-                  setActiveEco("student")
-                  document.getElementById("ecosystem")?.scrollIntoView({ behavior: "smooth" })
-                }}
-                title="View Students Ecosystem (Green)"
-              >
-                <span className="dot" />
-                <span>Students</span>
-              </span>
-              <span
-                className="nav-eco-pill college"
-                onClick={() => {
-                  setActiveEco("college")
-                  document.getElementById("ecosystem")?.scrollIntoView({ behavior: "smooth" })
-                }}
-                title="View Colleges Ecosystem (Deep Blue)"
-              >
-                <span className="dot" />
-                <span>Colleges</span>
-              </span>
-              <span
-                className="nav-eco-pill industry"
-                onClick={() => {
-                  setActiveEco("industry")
-                  document.getElementById("ecosystem")?.scrollIntoView({ behavior: "smooth" })
-                }}
-                title="View Industries Ecosystem (Gold)"
-              >
-                <span className="dot" />
-                <span>Industries</span>
-              </span>
-            </div>
           </div>
           <div className="public-nav-actions">
             <button
@@ -1701,37 +1666,6 @@ function AppShell({
             </div>
           </div>
           <div className="header-tools">
-            {/* Quick Ecosystem Switcher */}
-            <div className="ecosystem-quick-switcher">
-              <button
-                type="button"
-                className={`eco-switch-pill ${role === "student" ? "active student" : ""}`}
-                onClick={() => navigate("/student/dashboard")}
-                title="Switch to Student Ecosystem (Green Accent)"
-              >
-                <span className="dot" style={{ background: "var(--student)" }} />
-                <span>Student</span>
-              </button>
-              <button
-                type="button"
-                className={`eco-switch-pill ${role === "college" ? "active college" : ""}`}
-                onClick={() => navigate("/college/dashboard")}
-                title="Switch to College Ecosystem (Deep Blue Accent)"
-              >
-                <span className="dot" style={{ background: "var(--college)" }} />
-                <span>College</span>
-              </button>
-              <button
-                type="button"
-                className={`eco-switch-pill ${role === "industry" ? "active industry" : ""}`}
-                onClick={() => navigate("/industry/dashboard")}
-                title="Switch to Industry Ecosystem (Gold Accent)"
-              >
-                <span className="dot" style={{ background: "var(--industry)" }} />
-                <span>Industry</span>
-              </button>
-            </div>
-
             <button
               aria-label="Search workspace"
               className="search-box"

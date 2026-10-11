@@ -165,52 +165,6 @@ h1, h2, h3, .logo { font-family: "Manrope", sans-serif; }
 .public-links a { color: #b9c2d4; font-size: 14px; text-decoration: none; font-weight: 600; transition: color .15s; }
 .public-links a:hover { color: #ffffff; }
 
-.nav-eco-group {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-left: 6px;
-  padding-left: 16px;
-  border-left: 1px solid rgba(255, 255, 255, 0.15);
-}
-.nav-eco-pill {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 99px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.05);
-  color: #c7cede;
-  transition: all 0.18s ease;
-}
-.nav-eco-pill .dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  display: inline-block;
-}
-.nav-eco-pill.student .dot { background: #10b981; }
-.nav-eco-pill.college .dot { background: #3b82f6; }
-.nav-eco-pill.industry .dot { background: #f59e0b; }
-.nav-eco-pill.student:hover {
-  background: rgba(16, 185, 129, 0.18);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #a7f3d0;
-}
-.nav-eco-pill.college:hover {
-  background: rgba(59, 130, 246, 0.18);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #bfdbfe;
-}
-.nav-eco-pill.industry:hover {
-  background: rgba(245, 158, 11, 0.18);
-  border-color: rgba(245, 158, 11, 0.4);
-  color: #fde68a;
-}
 
 .hero { min-height: 600px; padding: 64px max(24px, calc((100vw - 1180px)/2)) 70px; display: grid; grid-template-columns: .9fr 1.1fr; gap: 45px; align-items: center; background: var(--soft); }
 .hero-copy h1 { margin: 20px 0 16px; font-size: clamp(42px, 4.5vw, 67px); line-height: 1.07; letter-spacing: -3.7px; }
@@ -642,61 +596,6 @@ footer p { margin: 0; }
 .icon-btn:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.24); color: white; }
 .icon-btn i { position: absolute; width: 6px; height: 6px; top: 7px; right: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 6px var(--red); }
 
-/* Header Ecosystem Quick Switcher */
-.ecosystem-quick-switcher {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 3px 5px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.eco-switch-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  background: transparent;
-  color: #9cb0d1;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.16s ease;
-  user-select: none;
-}
-.eco-switch-pill:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
-}
-.eco-switch-pill .dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: none;
-}
-.eco-switch-pill.active.student {
-  background: rgba(5, 150, 105, 0.22);
-  border-color: rgba(16, 185, 129, 0.45);
-  color: #a7f3d0;
-}
-.eco-switch-pill.active.college {
-  background: rgba(29, 78, 216, 0.22);
-  border-color: rgba(59, 130, 246, 0.45);
-  color: #bfdbfe;
-}
-.eco-switch-pill.active.industry {
-  background: rgba(217, 119, 6, 0.22);
-  border-color: rgba(245, 158, 11, 0.45);
-  color: #fde68a;
-}
-@media (max-width: 900px) {
-  .ecosystem-quick-switcher {
-    display: none;
-  }
-}
 
 .user-chip { padding-left: 5px; display: flex; align-items: center; gap: 8px; }
 .user-chip > span, .table-avatar { width: 34px; height: 34px; display: inline-grid; place-items: center; flex: none; border-radius: 50%; color: white; background: transparent; }
